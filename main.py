@@ -10,33 +10,35 @@ def match(img1, img2, orb):
     matches_gms = matchGMS(img1.shape[:2], img2.shape[:2], kp1, kp2, matches_all)
     return matches_gms
 
+def main():
+    cap = cv.VideoCapture('movie.mov')
+    if not cap.isOpened():
+        print('Error opening video file!')
+        exit(1)
 
-cap = cv.VideoCapture('movie.mov')
-if not cap.isOpened():
-    print('Error opening video file!')
-    exit(1)
+    keypoints_num = 3000
+    orb = cv.ORB_create(keypoints_num)
+    last_frame = None
 
-keypoints_num = 3000
-orb = cv.ORB_create(keypoints_num)
-last_frame = None
-
-while cap.isOpened(): 
-    ret, frame = cap.read()
-    if last_frame is not None:
-        matched_imgs = match(last_frame, frame, orb)
-        print(type(matched_imgs[0]))
-    if ret:
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  
-        kp = orb.detect(frame, None)
-        img = cv.drawKeypoints(gray, kp, frame)
-        cv.imshow('Frame', img)
-        last_frame = frame
-        if cv.waitKey(25) & 0xFF == ord('q'):
+    while cap.isOpened(): 
+        ret, frame = cap.read()
+        if last_frame is not None:
+            matched_imgs = match(last_frame, frame, orb)
+            print(type(matched_imgs[0]))
+        if ret:
+            gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  
+            kp = orb.detect(frame, None)
+            img = cv.drawKeypoints(gray, kp, frame)
+            cv.imshow('Frame', img)
+            last_frame = frame
+            if cv.waitKey(25) & 0xFF == ord('q'):
+                break
+        else:
             break
-    else:
-        break
 
-cap.release()
-cv.destroyAllWindows()
+    cap.release()
+    cv.destroyAllWindows()
 
+if __name__ == "__main__":
+    main()
 
