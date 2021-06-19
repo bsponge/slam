@@ -4,9 +4,9 @@ slam algorithm
 
 # how to
 ```
-python main.py - generate points in space
+python main.py - generate points
 
-./display/build/src/display - display points in space (wasd - move, er - next,previous frame, leftmousebutton & mosue - move camera)
+./display/build/src/display - display points (wasd - move, er - next,previous frame, leftmousebutton & mosue - move camera)
 ```
 # build display
 ```
