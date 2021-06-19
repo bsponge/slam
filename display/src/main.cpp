@@ -42,7 +42,7 @@ glm::vec3 cameraPos = glm::vec3(0.3f, 0.3f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-void ustawKamereMysz(GLint uniView, sf::Int64 time, sf::Window& window) {
+void setCamera(GLint uniView, sf::Int64 time, sf::Window& window) {
   sf::Vector2i localPosition = sf::Mouse::getPosition(window);
   sf::Vector2i position;
   bool relocation = false;
@@ -112,6 +112,71 @@ void ustawKamereMysz(GLint uniView, sf::Int64 time, sf::Window& window) {
   glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
 }
 
+int loadPointsFromFrame(int frame, int buffer, const char* points_filename, const char* points_num_filename) {
+  std::vector<float> vec;
+  std::ifstream points_file;
+  std::ifstream points_num_file;
+  points_file.open(points_filename);
+  points_num_file.open(points_num_filename);
+  int num_of_points_to_read = 0;
+  int real_size = 0;
+  if (points_file.is_open() && points_num_file.is_open()) {
+    int i = 0;
+    while (!points_num_file.eof() && i < frame) {
+      int  tmp = 0;
+      points_num_file >> tmp;
+      std::cout << "to read: " << tmp << std::endl;
+      num_of_points_to_read += tmp*3;
+      ++i;
+    }
+    std::cout << "num to read: " << num_of_points_to_read << std::endl;
+    float* tmp_arr = new float[num_of_points_to_read];
+    float max_x = std::numeric_limits<float>::min();
+    float max_y = max_x;
+    float max_z = max_x;
+    for (i = 0; !points_file.eof() && i < num_of_points_to_read; i += 3) {
+      for (int j = 0; !points_file.eof() && j < 3; ++j) {
+        points_file >> tmp_arr[i+j];
+        ++real_size;
+      } 
+      if (abs(tmp_arr[i] > max_x) && i < real_size) {
+        max_x = abs(tmp_arr[i]);
+      }
+      if (abs(tmp_arr[i+1]) > max_y && i < real_size+1) {
+        max_y = abs(tmp_arr[i+1]);
+      }
+      if (abs(tmp_arr[i+2]) > max_z && i < real_size+2) {
+        max_z = abs(tmp_arr[i+2]);
+      }
+    }
+
+    for (i = 0; i < real_size; i += 3) {
+      tmp_arr[i] /= max_x;
+      tmp_arr[i+1] /= max_y;
+      tmp_arr[i+2] /= max_z;
+    }
+
+    std::cout << "bind" << std::endl;
+    std::cout << "realsize: " << real_size << std::endl;
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    std::cout << "afterbind" << std::endl;
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*real_size, tmp_arr, GL_STATIC_DRAW);
+    std::cout << "end" << std::endl;
+
+    delete [] tmp_arr;
+
+    std::cout << "vertices sent to buffer" << std::endl;
+
+    points_file.close();
+    points_num_file.close();
+  } else {
+    std::cout << "points_file: " << points_filename << " is " << points_file.is_open() << std::endl;
+    std::cout << "points_num_file: " << points_num_filename << " is " << points_num_file.is_open() << std::endl;
+  }
+
+  return real_size;
+}
+
 
 int loadVertices(int buffer, const char* filename) {
   std::vector<float> vec;
@@ -127,7 +192,7 @@ int loadVertices(int buffer, const char* filename) {
     std::cout << "File " << filename << " is closed" << std::endl;
   }
   
-  float* arr = new float[vec.size()+3];
+  float* arr = new float[vec.size()];
   float max_x = std::numeric_limits<float>::min();
   float max_y = max_x;
   float max_z = max_x;
@@ -152,12 +217,8 @@ int loadVertices(int buffer, const char* filename) {
     arr[i+2] /= max_z;
   }
 
-  arr[vec.size()] = max_x / 2;
-  arr[vec.size()+1] = max_y / 2;
-  arr[vec.size()+2] = max_z / 2;
-
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*vec.size() + 3, arr, GL_STATIC_DRAW); 
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*vec.size(), arr, GL_STATIC_DRAW); 
   int size = vec.size();
 
   delete [] arr;
@@ -167,6 +228,10 @@ int loadVertices(int buffer, const char* filename) {
 
 
 int main() {
+
+
+  int frames_num = 10;
+
   sf::ContextSettings settings;
   settings.depthBits = 24;
   settings.stencilBits = 8;
@@ -186,7 +251,12 @@ int main() {
   GLuint vbo;
   glGenBuffers(1, &vbo);
 
-  int points_size = loadVertices(vbo, "/home/js/python/slam/points");
+  float* points = nullptr;
+
+  const char* points_filename = "/home/js/python/slam/points";
+  const char* points_num_filename = "/home/js/python/slam/points_in_frame";
+  //int points_size = loadVertices(vbo, "/home/js/python/slam/points");
+  int points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
   if (points_size == 0) {
     std::cout << "ERROR WHILE LOADING VERTICES" << std::endl;
     return 1;
@@ -303,7 +373,7 @@ int main() {
         //case sf::Event::MouseMoved:
         case sf::Event::MouseMoved:
           if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
-            ustawKamereMysz(uniView, time.asMicroseconds(), window);
+            setCamera(uniView, time.asMicroseconds(), window);
           break;
         case sf::Event::KeyPressed:
           switch (windowEvent.key.code) {
@@ -346,6 +416,19 @@ int main() {
               uniView = glGetUniformLocation(shaderProgram, "view");
               glUniformMatrix4fv(uniView, 1, GL_FALSE, glm::value_ptr(view));
               break; 
+            case sf::Keyboard::R:
+              ++frames_num;
+              std::cout << "frames num: " << frames_num << std::endl;
+              points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
+              break;
+            case sf::Keyboard::E:
+              if (frames_num > 1) {
+                --frames_num;
+                std::cout << "frames num: " << frames_num << std::endl;
+                points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
+                std::cout << "points_size: " << points_size << std::endl;
+              }
+              break;
           }
           break;
       }
@@ -355,10 +438,7 @@ int main() {
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glPointSize(1.0);
-    glDrawArrays(GL_POINTS, 0, points_size/3 - 2);
-
-    glPointSize(20.0);
-    glDrawArrays(GL_POINTS, points_size/3 - 1, points_size/3);
+    glDrawArrays(GL_POINTS, 0, points_size/3);
 
     window.display();
   }

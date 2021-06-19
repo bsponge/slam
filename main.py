@@ -22,6 +22,7 @@ def main():
     last_frame = None
     F = 400
     file = open('points', 'w')
+    points_in_frame = open('points_in_frame', 'w')
 
     center = None
 
@@ -39,6 +40,7 @@ def main():
             # get matches
             matches = match(kp1, kp2, des1, des2, last_frame.shape, frame.shape, orb, matcher)
             # iterate through matches and save matching points to the file
+            points_num = 0
             for m in matches:
                 if m.distance < 40:
                     dx, dy = kp1[m.trainIdx].pt[0] - kp2[m.queryIdx].pt[0], kp1[m.trainIdx].pt[1] - kp2[m.queryIdx].pt[1]
@@ -59,6 +61,9 @@ def main():
                         file.write(' ')
                         file.write(str(z))
                         file.write('\n')
+                        points_num = points_num + 1
+            points_in_frame.write(str(points_num))
+            points_in_frame.write('\n')
             position = position[0], position[1], position[2] + 50
         # display frames of the video
         if ret:
