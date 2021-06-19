@@ -17,7 +17,7 @@ def main():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 1000
+    keypoints_num = 5000
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     last_frame = None
     F = 400

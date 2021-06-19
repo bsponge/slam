@@ -245,27 +245,14 @@ int main() {
 
   float* points = nullptr;
 
-  const char* points_filename = "/home/js/python/slam/points";
-  const char* points_num_filename = "/home/js/python/slam/points_in_frame";
+  const char* points_filename = "../../points";
+  const char* points_num_filename = "../../points_in_frame";
   //int points_size = loadVertices(vbo, "/home/js/python/slam/points");
   int points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
   if (points_size == 0) {
     std::cout << "ERROR WHILE LOADING VERTICES" << std::endl;
     return 1;
   }
-
-  /*
-  float points[] = {
-    0.8, -0.7, 0.1,
-    0.5, 0.5, 0.2,
-    -0.2, 0.1, 0.3
-  };
-
-
-  int points_size = 9;
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*points_size, points, GL_STATIC_DRAW);
-  */
 
 
   std::cout << "points size: " << points_size << std::endl;
