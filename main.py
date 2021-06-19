@@ -17,7 +17,7 @@ def main():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 2000
+    keypoints_num = 1000
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     last_frame = None
     F = 400
@@ -25,7 +25,7 @@ def main():
 
     center = None
 
-    position = 0.0, 0.0
+    position = 0.0, 0.0, 0.0
     
 
     while cap.isOpened(): 
@@ -50,15 +50,16 @@ def main():
                     if div2 != 0.0:
                         m2 = (center[1]-kp2[m.queryIdx].pt[1]) / div2
                     # if slope difference of linear functions defined by center point and keypoint is higher than 10 degrees then discard
-                    if abs(m2-m1) < 0.17:
+                    if abs(m2-m1) < 0.20:
                         # distance between center and keypoint from current frame
                         distance = ((center[0] - kp2[m.queryIdx].pt[0])**2+(center[1] - kp2[m.queryIdx].pt[1])**2)**(1/2)
                         m.distance > frame.shape[1]//2
-                        z = m.distance * distance
-                        file.write(' '.join(str(f) for f in kp2[m.queryIdx].pt))
+                        z = m.distance * distance + position[2]
+                        file.write(' '.join(str(f*10.0) for f in kp2[m.queryIdx].pt))
                         file.write(' ')
                         file.write(str(z))
                         file.write('\n')
+            position = position[0], position[1], position[2] + 50
         # display frames of the video
         if ret:
             center = (frame.shape[1]//2, frame.shape[0]-F)
