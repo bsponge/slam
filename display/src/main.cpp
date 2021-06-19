@@ -125,11 +125,9 @@ int loadPointsFromFrame(int frame, int buffer, const char* points_filename, cons
     while (!points_num_file.eof() && i < frame) {
       int  tmp = 0;
       points_num_file >> tmp;
-      std::cout << "to read: " << tmp << std::endl;
       num_of_points_to_read += tmp*3;
       ++i;
     }
-    std::cout << "num to read: " << num_of_points_to_read << std::endl;
     float* tmp_arr = new float[num_of_points_to_read];
     float max_x = std::numeric_limits<float>::min();
     float max_y = max_x;
@@ -156,16 +154,10 @@ int loadPointsFromFrame(int frame, int buffer, const char* points_filename, cons
       tmp_arr[i+2] /= max_z;
     }
 
-    std::cout << "bind" << std::endl;
-    std::cout << "realsize: " << real_size << std::endl;
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    std::cout << "afterbind" << std::endl;
     glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*real_size, tmp_arr, GL_STATIC_DRAW);
-    std::cout << "end" << std::endl;
 
     delete [] tmp_arr;
-
-    std::cout << "vertices sent to buffer" << std::endl;
 
     points_file.close();
     points_num_file.close();
@@ -418,15 +410,12 @@ int main() {
               break; 
             case sf::Keyboard::R:
               ++frames_num;
-              std::cout << "frames num: " << frames_num << std::endl;
               points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
               break;
             case sf::Keyboard::E:
               if (frames_num > 1) {
                 --frames_num;
-                std::cout << "frames num: " << frames_num << std::endl;
                 points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
-                std::cout << "points_size: " << points_size << std::endl;
               }
               break;
           }
