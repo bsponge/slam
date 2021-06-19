@@ -1,4 +1,6 @@
 import cv2 as cv
+import matplotlib.pyplot as plt
+import numpy as np
 from cv2.xfeatures2d import matchGMS
 import numpy as np
 
@@ -15,7 +17,7 @@ def main():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 200
+    keypoints_num = 2000
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     last_frame = None
     F = 400
@@ -23,10 +25,12 @@ def main():
 
     center = None
 
+    
+
     while cap.isOpened(): 
         # get frame
         ret, frame = cap.read()
-        if last_frame is not None:
+        if last_frame is not None and frame is not None:
             
             # get keypoints and descriptors
             kp1, des1 = orb.detectAndCompute(last_frame, None)
@@ -38,13 +42,21 @@ def main():
                 if m.distance < 40:
                     dx, dy = kp1[m.trainIdx].pt[0] - kp2[m.queryIdx].pt[0], kp1[m.trainIdx].pt[1] - kp2[m.queryIdx].pt[1]
                     # y = mx + b
-                    m1 = (center[1]-kp1[m.trainIdx].pt[1]) / (center[0]-kp1[m.trainIdx].pt[0])
-                    m2 = (center[1]-kp2[m.queryIdx].pt[1]) / (center[0]-kp2[m.queryIdx].pt[0])
+                    div1 = center[0]-kp1[m.trainIdx].pt[0]
+                    if div1 != 0.0:
+                        m1 = (center[1]-kp1[m.trainIdx].pt[1]) / div1
+                    div2 = center[0]-kp2[m.queryIdx].pt[0]
+                    if div2 != 0.0:
+                        m2 = (center[1]-kp2[m.queryIdx].pt[1]) / div2
                     # if slope difference of linear functions defined by center point and keypoint is higher than 10 degrees then discard
                     if abs(m2-m1) < 0.17:
-                        file.write(','.join(str(f) for f in kp1[m.trainIdx].pt))
-                        file.write(',')
-                        file.write(','.join(str(f) for f in kp2[m.queryIdx].pt))
+                        # distance between center and keypoint from current frame
+                        distance = ((center[0] - kp2[m.queryIdx].pt[0])**2+(center[1] - kp2[m.queryIdx].pt[1])**2)**(1/2)
+                        m.distance > frame.shape[1]//2
+                        z = m.distance * distance
+                        file.write(' '.join(str(f) for f in kp2[m.queryIdx].pt))
+                        file.write(' ')
+                        file.write(str(z))
                         file.write('\n')
         # display frames of the video
         if ret:
