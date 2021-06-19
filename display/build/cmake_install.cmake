@@ -1,4 +1,4 @@
-# Install script for directory: /home/js/cpp/display
+# Install script for directory: /home/js/python/slam/display
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/js/cpp/display/build/src/cmake_install.cmake")
+  include("/home/js/python/slam/display/build/src/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -55,5 +55,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/js/cpp/display/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/js/python/slam/display/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

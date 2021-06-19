@@ -1,4 +1,4 @@
-# Install script for directory: /home/js/cpp/display/src
+# Install script for directory: /home/js/python/slam/display/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

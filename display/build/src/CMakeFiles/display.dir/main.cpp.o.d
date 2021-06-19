@@ -1,5 +1,6 @@
-src/CMakeFiles/display.dir/main.cpp.o: /home/js/cpp/display/src/main.cpp \
- /usr/include/stdc-predef.h /usr/include/c++/11.1.0/iostream \
+src/CMakeFiles/display.dir/main.cpp.o: \
+ /home/js/python/slam/display/src/main.cpp /usr/include/stdc-predef.h \
+ /usr/include/c++/11.1.0/iostream \
  /usr/include/c++/11.1.0/x86_64-pc-linux-gnu/bits/c++config.h \
  /usr/include/c++/11.1.0/x86_64-pc-linux-gnu/bits/os_defines.h \
  /usr/include/features.h /usr/include/sys/cdefs.h \
@@ -157,8 +158,9 @@ src/CMakeFiles/display.dir/main.cpp.o: /home/js/cpp/display/src/main.cpp \
  /usr/include/c++/11.1.0/tr1/poly_laguerre.tcc \
  /usr/include/c++/11.1.0/tr1/riemann_zeta.tcc /usr/include/GL/glew.h \
  /usr/include/c++/11.1.0/cstddef /usr/include/GL/glu.h \
- /usr/include/GL/gl.h /home/js/cpp/display/src/../include/glm/glm.hpp \
- /home/js/cpp/display/src/../include/glm/detail/_fixes.hpp \
+ /usr/include/GL/gl.h \
+ /home/js/python/slam/display/src/../include/glm/glm.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/_fixes.hpp \
  /usr/include/c++/11.1.0/climits \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include-fixed/limits.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include-fixed/syslimits.h \
@@ -168,77 +170,77 @@ src/CMakeFiles/display.dir/main.cpp.o: /home/js/cpp/display/src/main.cpp \
  /usr/include/bits/uio_lim.h /usr/include/c++/11.1.0/cfloat \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/float.h \
  /usr/include/c++/11.1.0/cassert /usr/include/assert.h \
- /home/js/cpp/display/src/../include/glm/fwd.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_int.hpp \
- /home/js/cpp/display/src/../include/glm/detail/setup.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../simd/platform.h \
+ /home/js/python/slam/display/src/../include/glm/fwd.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_int.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/setup.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../simd/platform.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/emmintrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/xmmintrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/mmintrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/mm_malloc.h \
  /usr/include/c++/11.1.0/stdlib.h \
- /home/js/cpp/display/src/../include/glm/detail/type_float.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec.hpp \
- /home/js/cpp/display/src/../include/glm/detail/precision.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_mat.hpp \
- /home/js/cpp/display/src/../include/glm/vec2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec2.inl \
- /home/js/cpp/display/src/../include/glm/vec3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec3.inl \
- /home/js/cpp/display/src/../include/glm/vec4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_vec4.inl \
- /home/js/cpp/display/src/../include/glm/detail/type_vec4_simd.inl \
- /home/js/cpp/display/src/../include/glm/mat2x2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_mat2x2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_mat2x2.inl \
- /home/js/cpp/display/src/../include/glm/detail/func_matrix.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../mat2x3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat2x3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat2x3.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat2x4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat2x4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat2x4.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat3x2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat3x2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat3x2.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat3x3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat3x3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat3x3.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat3x4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat3x4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat3x4.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat4x2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x2.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x2.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat4x3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x3.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x3.inl \
- /home/js/cpp/display/src/../include/glm/detail/../mat4x4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x4.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x4.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_mat4x4_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/func_matrix.inl \
- /home/js/cpp/display/src/../include/glm/detail/../geometric.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_geometric.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_geometric.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_exponential.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_vec1.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/type_vec1.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_exponential.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_vector_relational.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_vector_relational.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_vector_relational_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/_vectorize.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_exponential_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/../simd/exponential.h \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_common.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/_fixes.hpp \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_common.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_common_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/../simd/common.h \
+ /home/js/python/slam/display/src/../include/glm/detail/type_float.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/precision.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_mat.hpp \
+ /home/js/python/slam/display/src/../include/glm/vec2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec2.inl \
+ /home/js/python/slam/display/src/../include/glm/vec3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec3.inl \
+ /home/js/python/slam/display/src/../include/glm/vec4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec4.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/type_vec4_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/mat2x2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_mat2x2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_mat2x2.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/func_matrix.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat2x3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat2x3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat2x3.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat2x4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat2x4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat2x4.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat3x2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat3x2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat3x2.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat3x3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat3x3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat3x3.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat3x4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat3x4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat3x4.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat4x2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x2.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x2.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat4x3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x3.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x3.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../mat4x4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x4.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x4.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_mat4x4_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/func_matrix.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../geometric.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_geometric.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_geometric.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_exponential.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_vec1.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/type_vec1.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_exponential.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_vector_relational.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_vector_relational.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_vector_relational_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/_vectorize.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_exponential_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/../simd/exponential.h \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_common.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/_fixes.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_common.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_common_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/../simd/common.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/immintrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/x86gprintrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/ia32intrin.h \
@@ -318,40 +320,40 @@ src/CMakeFiles/display.dir/main.cpp.o: /home/js/cpp/display/src/main.cpp \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/amxbf16intrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/prfchwintrin.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/keylockerintrin.h \
- /home/js/cpp/display/src/../include/glm/detail/../detail/func_geometric_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/../detail/../simd/geometric.h \
- /home/js/cpp/display/src/../include/glm/detail/func_matrix_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/../simd/matrix.h \
- /home/js/cpp/display/src/../include/glm/trigonometric.hpp \
- /home/js/cpp/display/src/../include/glm/detail/func_trigonometric.hpp \
- /home/js/cpp/display/src/../include/glm/detail/func_trigonometric.inl \
- /home/js/cpp/display/src/../include/glm/detail/func_trigonometric_simd.inl \
- /home/js/cpp/display/src/../include/glm/exponential.hpp \
- /home/js/cpp/display/src/../include/glm/common.hpp \
- /home/js/cpp/display/src/../include/glm/packing.hpp \
- /home/js/cpp/display/src/../include/glm/detail/func_packing.hpp \
- /home/js/cpp/display/src/../include/glm/detail/func_packing.inl \
- /home/js/cpp/display/src/../include/glm/detail/type_half.hpp \
- /home/js/cpp/display/src/../include/glm/detail/type_half.inl \
- /home/js/cpp/display/src/../include/glm/detail/func_packing_simd.inl \
- /home/js/cpp/display/src/../include/glm/matrix.hpp \
- /home/js/cpp/display/src/../include/glm/vector_relational.hpp \
- /home/js/cpp/display/src/../include/glm/integer.hpp \
- /home/js/cpp/display/src/../include/glm/detail/func_integer.hpp \
- /home/js/cpp/display/src/../include/glm/detail/func_integer.inl \
- /home/js/cpp/display/src/../include/glm/detail/func_integer_simd.inl \
- /home/js/cpp/display/src/../include/glm/detail/../simd/integer.h \
- /home/js/cpp/display/src/../include/glm/gtc/matrix_transform.hpp \
- /home/js/cpp/display/src/../include/glm/gtc/../gtc/constants.hpp \
- /home/js/cpp/display/src/../include/glm/gtc/../gtc/constants.inl \
- /home/js/cpp/display/src/../include/glm/gtc/matrix_transform.inl \
- /home/js/cpp/display/src/../include/glm/gtc/type_ptr.hpp \
- /home/js/cpp/display/src/../include/glm/gtc/../gtc/quaternion.hpp \
- /home/js/cpp/display/src/../include/glm/gtc/../gtc/quaternion.inl \
- /home/js/cpp/display/src/../include/glm/gtc/../gtc/quaternion_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/func_geometric_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../detail/../simd/geometric.h \
+ /home/js/python/slam/display/src/../include/glm/detail/func_matrix_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../simd/matrix.h \
+ /home/js/python/slam/display/src/../include/glm/trigonometric.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/func_trigonometric.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/func_trigonometric.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/func_trigonometric_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/exponential.hpp \
+ /home/js/python/slam/display/src/../include/glm/common.hpp \
+ /home/js/python/slam/display/src/../include/glm/packing.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/func_packing.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/func_packing.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/type_half.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/type_half.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/func_packing_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/matrix.hpp \
+ /home/js/python/slam/display/src/../include/glm/vector_relational.hpp \
+ /home/js/python/slam/display/src/../include/glm/integer.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/func_integer.hpp \
+ /home/js/python/slam/display/src/../include/glm/detail/func_integer.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/func_integer_simd.inl \
+ /home/js/python/slam/display/src/../include/glm/detail/../simd/integer.h \
+ /home/js/python/slam/display/src/../include/glm/gtc/matrix_transform.hpp \
+ /home/js/python/slam/display/src/../include/glm/gtc/../gtc/constants.hpp \
+ /home/js/python/slam/display/src/../include/glm/gtc/../gtc/constants.inl \
+ /home/js/python/slam/display/src/../include/glm/gtc/matrix_transform.inl \
+ /home/js/python/slam/display/src/../include/glm/gtc/type_ptr.hpp \
+ /home/js/python/slam/display/src/../include/glm/gtc/../gtc/quaternion.hpp \
+ /home/js/python/slam/display/src/../include/glm/gtc/../gtc/quaternion.inl \
+ /home/js/python/slam/display/src/../include/glm/gtc/../gtc/quaternion_simd.inl \
  /usr/include/c++/11.1.0/cstring /usr/include/string.h \
  /usr/include/strings.h \
- /home/js/cpp/display/src/../include/glm/gtc/type_ptr.inl \
+ /home/js/python/slam/display/src/../include/glm/gtc/type_ptr.inl \
  /usr/include/SFML/Window.hpp /usr/include/SFML/System.hpp \
  /usr/include/SFML/Config.hpp /usr/include/SFML/System/Clock.hpp \
  /usr/include/SFML/System/Export.hpp /usr/include/SFML/System/Time.hpp \

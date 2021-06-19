@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/js/cpp/display
+CMAKE_SOURCE_DIR = /home/js/python/slam/display
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/js/cpp/display/build
+CMAKE_BINARY_DIR = /home/js/python/slam/display/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -96,14 +96,14 @@ src/clean: src/CMakeFiles/display.dir/clean
 src/CMakeFiles/display.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/js/cpp/display/build/CMakeFiles --progress-num=1,2 "Built target display"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/js/python/slam/display/build/CMakeFiles --progress-num=1,2 "Built target display"
 .PHONY : src/CMakeFiles/display.dir/all
 
 # Build rule for subdir invocation for target.
 src/CMakeFiles/display.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/js/cpp/display/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/js/python/slam/display/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/display.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/js/cpp/display/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/js/python/slam/display/build/CMakeFiles 0
 .PHONY : src/CMakeFiles/display.dir/rule
 
 # Convenience name for target.

@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/display.dir/main.cpp.o -o display   -L/home/js/cpp/display/src/../include  -Wl,-rpath,/home/js/cpp/display/src/../include -lGL -lGLEW -lGLU -lXrandr -lsfml-graphics -lsfml-window -lsfml-system -lm 
+/usr/bin/c++ CMakeFiles/display.dir/main.cpp.o -o display   -L/home/js/python/slam/display/src/../include  -Wl,-rpath,/home/js/python/slam/display/src/../include -lGL -lGLEW -lGLU -lXrandr -lsfml-graphics -lsfml-window -lsfml-system -lm 

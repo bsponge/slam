@@ -127,7 +127,7 @@ int loadVertices(int buffer, const char* filename) {
     std::cout << "File " << filename << " is closed" << std::endl;
   }
   
-  float* arr = new float[vec.size()];
+  float* arr = new float[vec.size()+3];
   float max_x = std::numeric_limits<float>::min();
   float max_y = max_x;
   float max_z = max_x;
@@ -152,9 +152,12 @@ int loadVertices(int buffer, const char* filename) {
     arr[i+2] /= max_z;
   }
 
+  arr[vec.size()] = max_x / 2;
+  arr[vec.size()+1] = max_y / 2;
+  arr[vec.size()+2] = max_z / 2;
 
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*vec.size(), arr, GL_STATIC_DRAW); 
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*vec.size() + 3, arr, GL_STATIC_DRAW); 
   int size = vec.size();
 
   delete [] arr;
@@ -171,8 +174,8 @@ int main() {
   sf::Window window = sf::Window(sf::VideoMode(1000, 800, 32), "SLAM", sf::Style::Titlebar | sf::Style::Close, settings);
   glewExperimental = GL_TRUE;
   glewInit();
-  window.setMouseCursorGrabbed(true);
-  window.setMouseCursorVisible(false);
+  //window.setMouseCursorGrabbed(true);
+  //window.setMouseCursorVisible(false);
   
   window.setFramerateLimit(60);
 
@@ -183,17 +186,11 @@ int main() {
   GLuint vbo;
   glGenBuffers(1, &vbo);
 
-  int points_size = loadVertices(vbo, "../../points");
+  int points_size = loadVertices(vbo, "/home/js/python/slam/points");
   if (points_size == 0) {
     std::cout << "ERROR WHILE LOADING VERTICES" << std::endl;
     return 1;
   }
-
-  GLuint center_vbo;
-  glGenBuffers(1, &center_vbo);
-
-  glBindBuffer(GL_ARRAY_BUFFER, center_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*3, arr, GL_STATIC_DRAW);
 
   /*
   float points[] = {
@@ -284,6 +281,7 @@ int main() {
   glEnable(GL_DEPTH_TEST);
   int licznik = 0;
 
+  bool mouseMoving = false;
 
 
   while (running) {
@@ -296,13 +294,16 @@ int main() {
       licznik = 0;
     }
     sf::Event windowEvent;
+
     while (window.pollEvent(windowEvent)) {
       switch (windowEvent.type) {
         case sf::Event::Closed:
           running = false;
           break;
+        //case sf::Event::MouseMoved:
         case sf::Event::MouseMoved:
-          ustawKamereMysz(uniView, time.asMicroseconds(), window);
+          if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+            ustawKamereMysz(uniView, time.asMicroseconds(), window);
           break;
         case sf::Event::KeyPressed:
           switch (windowEvent.key.code) {
@@ -354,11 +355,10 @@ int main() {
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glPointSize(1.0);
-    glDrawArrays(GL_POINTS, 0, points_size/3);
-    glPointSize(10.0);
-    glBindBuffer(GL_ARRAY_BUFFER, center_vbo);
-    glDrawArrays(GL_POINTS, 0, 1);
+    glDrawArrays(GL_POINTS, 0, points_size/3 - 2);
 
+    glPointSize(20.0);
+    glDrawArrays(GL_POINTS, points_size/3 - 1, points_size/3);
 
     window.display();
   }

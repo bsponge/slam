@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/js/cpp/display/src/../include
+CXX_INCLUDES = -I/home/js/python/slam/display/src/../include
 
 CXX_FLAGS = -std=c++17
 

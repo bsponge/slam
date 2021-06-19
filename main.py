@@ -25,6 +25,7 @@ def main():
 
     center = None
 
+    position = 0.0, 0.0
     
 
     while cap.isOpened(): 

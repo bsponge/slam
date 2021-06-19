@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/js/cpp/display
+CMAKE_SOURCE_DIR = /home/js/python/slam/display
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/js/cpp/display/build
+CMAKE_BINARY_DIR = /home/js/python/slam/display/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,14 +87,14 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /home/js/cpp/display/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/js/cpp/display/build/CMakeFiles /home/js/cpp/display/build/src//CMakeFiles/progress.marks
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/js/cpp/display/build/CMakeFiles 0
+	cd /home/js/python/slam/display/build && $(CMAKE_COMMAND) -E cmake_progress_start /home/js/python/slam/display/build/CMakeFiles /home/js/python/slam/display/build/src//CMakeFiles/progress.marks
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/js/python/slam/display/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
 .PHONY : clean
 
 # The main clean target
@@ -103,22 +103,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /home/js/cpp/display/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /home/js/python/slam/display/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 src/CMakeFiles/display.dir/rule:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/display.dir/rule
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/display.dir/rule
 .PHONY : src/CMakeFiles/display.dir/rule
 
 # Convenience name for target.
@@ -127,7 +127,7 @@ display: src/CMakeFiles/display.dir/rule
 
 # fast build rule for target.
 display/fast:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/build
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/build
 .PHONY : display/fast
 
 main.o: main.cpp.o
@@ -135,7 +135,7 @@ main.o: main.cpp.o
 
 # target to build an object file
 main.cpp.o:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/main.cpp.o
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -143,7 +143,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/main.cpp.i
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -151,7 +151,7 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	cd /home/js/cpp/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/main.cpp.s
+	cd /home/js/python/slam/display/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/display.dir/build.make src/CMakeFiles/display.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 # Help Target
@@ -177,6 +177,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /home/js/cpp/display/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /home/js/python/slam/display/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
