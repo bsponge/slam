@@ -25,4 +25,6 @@ opengl
 
 sfml
 
-opencv
+opencv-python
+
+opencv-contrib-python
