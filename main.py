@@ -3,21 +3,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 from cv2.xfeatures2d import matchGMS
 import numpy as np
+import sys
 
 def match(kp1, kp2, des1, des2, shape1, shape2, orb, matcher):
-    matches_all = matcher.match(des1, des2)
-    matches_gms = matchGMS(shape1[:2], shape2[:2], kp1, kp2, matches_all)
-    return matches_gms
+    matches_all = matcher.knnMatch(des1, des2, k=2)
+    #matches_all = matcher.match(des1, des2)
+    #matches_gms = matchGMS(shape1[:2], shape2[:2], kp1, kp2, matches_all)
+    #matches_gms = sorted(matches_gms, key = lambda x: x.distance)
+    good = []
+    for m,n in matches_all:
+        if m.distance < 0.75*n.distance:
+            good.append(m)
+    return good
 
 def main():
     matcher = cv.BFMatcher(cv.NORM_HAMMING)
-    cap = cv.VideoCapture('movie.mov')
+    cap = cv.VideoCapture('movie1.mp4')
 
     if not cap.isOpened():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 2000
+    keypoints_num = 1000
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     last_frame = None
     F = 400
@@ -73,6 +80,7 @@ def main():
         # get frame
         ret, frame = cap.read()
         frame = cv.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
+        kp1, kp2, matches = None, None, None
         if last_frame is not None and frame is not None:
             
             # get keypoints and descriptors
@@ -83,25 +91,25 @@ def main():
             # iterate through matches and save matching points to the file
             points_num = 0
             for m in matches:
-                if m.distance < 40:
-                    dx, dy = kp1[m.trainIdx].pt[0] - kp2[m.queryIdx].pt[0], kp1[m.trainIdx].pt[1] - kp2[m.queryIdx].pt[1]
+                if m.distance < 80:
+                    dx, dy = kp1[m.queryIdx].pt[0] - kp2[m.trainIdx].pt[0], kp1[m.queryIdx].pt[1] - kp2[m.trainIdx].pt[1]
                     # y = mx + b
-                    div1 = center[0]-kp1[m.trainIdx].pt[0]
+                    div1 = center[0]-kp1[m.queryIdx].pt[0]
                     if div1 != 0.0:
-                        m1 = (center[1]-kp1[m.trainIdx].pt[1]) / div1
+                        m1 = (center[1]-kp1[m.queryIdx].pt[1]) / div1
                     div2 = center[0]-kp2[m.queryIdx].pt[0]
                     if div2 != 0.0:
-                        m2 = (center[1]-kp2[m.queryIdx].pt[1]) / div2
+                        m2 = (center[1]-kp2[m.trainIdx].pt[1]) / div2
                     # if slope difference of linear functions defined by center point and keypoint is higher than 10 degrees then discard
-                    if abs(m2-m1) < 0.36:
+                    if abs(m2-m1) < 0.20:
                         # distance between center and keypoint from current frame
-                        x, y = kp2[m.queryIdx].pt
-                        distance = ((center[0] - kp2[m.queryIdx].pt[0])**2+(center[1] - kp2[m.queryIdx].pt[1])**2)**(1/2)
+                        x, y = kp2[m.trainIdx].pt
+                        distance = ((center[0] - kp2[m.trainIdx].pt[0])**2+(center[1] - kp2[m.trainIdx].pt[1])**2)**(1/2)
                         max_distance = ((center[0])**2+(center[1])**2)**(1/2)
                         m.distance > frame.shape[1]//2
-                        z = m.distance * distance + position[2]
+                        z = m.distance + position[2]
                         #file.write(' '.join(str(f*10.0) for f in kp2[m.queryIdx].pt))
-                        img_pt = np.zeros((3,1), dtype=np.float)
+                        img_pt = np.zeros((3,1), dtype=float)
                         img_pt[0][0] = float(x)
                         img_pt[1][0] = float(y)
                         img_pt[2][0] = 1.0
@@ -118,20 +126,22 @@ def main():
                         points_num = points_num + 1
             points_in_frame.write(str(points_num))
             points_in_frame.write('\n')
-            position = position[0], position[1], position[2] + 50
+            position = position[0], position[1], position[2] + 100
         # display frames of the video
         if ret:
-            center = (frame.shape[1]//2, frame.shape[0]-F)
+            if frame is not None:
+                center = (frame.shape[1]//2, frame.shape[0])
             gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  
             kp = orb.detect(frame, None)
-            img = cv.drawKeypoints(frame, kp, frame)
+            #img = cv.drawKeypoints(frame, kp, frame)
+            img = frame
+            if img is not None and matches is not None:
+                for m in matches[150:250]:
+                    cv.line(img, (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), (int(kp2[m.trainIdx].pt[0]), int(kp2[m.trainIdx].pt[1])), (255,0,0), 1)
             # perspective lines
-            cv.line(img, (0,img.shape[0]-F), (img.shape[1], img.shape[0]-F), (255,0,0), 1)
-            cv.line(img, (img.shape[1]//2,0), (img.shape[1]//2, img.shape[0]), (255,0,0), 1)
-            cv.line(img, (0,0), center, (255,0,0), 1)
-            cv.line(img, (img.shape[1],0), center, (255,0,0), 1)
             
             cv.imshow('Frame', img)
+            #sys.stdin.readline()
             last_frame = frame
             if cv.waitKey(25) & 0xFF == ord('q'):
                 break
