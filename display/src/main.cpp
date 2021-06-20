@@ -149,9 +149,9 @@ int loadPointsFromFrame(int frame, int buffer, const char* points_filename, cons
     }
 
     for (i = 0; i < real_size; i += 3) {
-      tmp_arr[i] /= max_x;
-      tmp_arr[i+1] /= max_y;
-      tmp_arr[i+2] /= max_z;
+      tmp_arr[i] /= 1000;
+      tmp_arr[i+1] /= 1000;
+      tmp_arr[i+2] /= 1000;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -332,11 +332,13 @@ int main() {
 
   bool mouseMoving = false;
 
+  
+
 
   while (running) {
     time = clock.restart();
     licznik++;
-    float cameraSpeed = 0.000001f * time.asMicroseconds();
+    float cameraSpeed = 0.00005f * time.asMicroseconds();
     float ffps = 1000000 / time.asMicroseconds();
     if (licznik > ffps) {
       window.setTitle(std::to_string(ffps));

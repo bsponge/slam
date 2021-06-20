@@ -17,10 +17,50 @@ def main():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 5000
+    keypoints_num = 2000
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     last_frame = None
     F = 400
+
+    # test, should be obtained from frame info
+    width = 1920 / 2
+    height = 1080 / 2
+
+    intrinsic_matrix = np.zeros((3,3))
+    intrinsic_matrix[0][0] = F/width
+    intrinsic_matrix[1][1] = F/height
+    intrinsic_matrix[2][2] = 1
+    intrinsic_matrix[0][1] = 0
+    intrinsic_matrix[0][2] = width / 2
+    intrinsic_matrix[1][2] = height / 2
+
+    # camera location
+    camera_pose = np.empty((3,1))
+
+    rotation_matrix = np.identity(3)
+    
+    # extrinsic_matrix aka view_matrix (OpenGL)
+    extrinsic_matrix = np.hstack((rotation_matrix, camera_pose))
+
+    
+
+    # camera coordinate system X,Y,Z
+    #                                           |
+    # image coordinates system U,V              |
+    # |u'|                       |X|             V
+    # |v'| = intrinsic_matrix *  |Y| <-- (camera coordinate system)
+    # |w'|                       |Z|
+    #
+    # u = u'/w'
+    # v = v'/w'
+
+    # relation between camera coordinates system and world coordinates system
+    # is camera_coord_system = rotation_matrix * world_coord_system - rotation_matrix * camera_pose
+
+    # 3D points in reality should be extrinsic_matrix**(-1) * (u, v, 1)
+
+    print(intrinsic_matrix)
+
     file = open('points', 'w')
     points_in_frame = open('points_in_frame', 'w')
 
@@ -32,6 +72,7 @@ def main():
     while cap.isOpened(): 
         # get frame
         ret, frame = cap.read()
+        frame = cv.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
         if last_frame is not None and frame is not None:
             
             # get keypoints and descriptors
@@ -52,12 +93,25 @@ def main():
                     if div2 != 0.0:
                         m2 = (center[1]-kp2[m.queryIdx].pt[1]) / div2
                     # if slope difference of linear functions defined by center point and keypoint is higher than 10 degrees then discard
-                    if abs(m2-m1) < 0.20:
+                    if abs(m2-m1) < 0.36:
                         # distance between center and keypoint from current frame
+                        x, y = kp2[m.queryIdx].pt
                         distance = ((center[0] - kp2[m.queryIdx].pt[0])**2+(center[1] - kp2[m.queryIdx].pt[1])**2)**(1/2)
+                        max_distance = ((center[0])**2+(center[1])**2)**(1/2)
                         m.distance > frame.shape[1]//2
                         z = m.distance * distance + position[2]
-                        file.write(' '.join(str(f*10.0) for f in kp2[m.queryIdx].pt))
+                        #file.write(' '.join(str(f*10.0) for f in kp2[m.queryIdx].pt))
+                        img_pt = np.zeros((3,1), dtype=np.float)
+                        img_pt[0][0] = float(x)
+                        img_pt[1][0] = float(y)
+                        img_pt[2][0] = 1.0
+                        pt = np.linalg.inv(intrinsic_matrix)
+                        pt = pt.dot(img_pt)
+
+                        file.write(str(pt[0][0]))
+                        file.write(' ')
+                        #file.write(str(3*y*(40.0/m.distance)))
+                        file.write(str(pt[1][0]))
                         file.write(' ')
                         file.write(str(z))
                         file.write('\n')
@@ -76,6 +130,7 @@ def main():
             cv.line(img, (img.shape[1]//2,0), (img.shape[1]//2, img.shape[0]), (255,0,0), 1)
             cv.line(img, (0,0), center, (255,0,0), 1)
             cv.line(img, (img.shape[1],0), center, (255,0,0), 1)
+            
             cv.imshow('Frame', img)
             last_frame = frame
             if cv.waitKey(25) & 0xFF == ord('q'):
