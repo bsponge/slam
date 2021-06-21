@@ -28,3 +28,5 @@ sfml
 opencv-python
 
 opencv-contrib-python
+
+kdtree
