@@ -4,6 +4,16 @@ import numpy as np
 from cv2.xfeatures2d import matchGMS
 import numpy as np
 import sys
+import kdtree
+import collections
+
+class Mapper:
+    def __init__(self):
+        self.val = 'sijsflkdjfjj'
+
+    def print(self):
+        print('siema')
+
 
 def match(kp1, kp2, des1, des2, shape1, shape2, orb, matcher):
     matches_all = matcher.knnMatch(des1, des2, k=2)
@@ -12,11 +22,16 @@ def match(kp1, kp2, des1, des2, shape1, shape2, orb, matcher):
     #matches_gms = sorted(matches_gms, key = lambda x: x.distance)
     good = []
     for m,n in matches_all:
-        if m.distance < 0.75*n.distance:
+        # 0.50 ???
+        if m.distance < 0.50*n.distance and m.distance > 0.05*n.distance:
             good.append(m)
     return good
 
 def main():
+    Point = collections.namedtuple('Point', 'x y z')
+    tree = kdtree.create(dimensions=3)
+    mapper = Mapper()
+    mapper.print()
     matcher = cv.BFMatcher(cv.NORM_HAMMING)
     cap = cv.VideoCapture('movie1.mp4')
 
@@ -24,7 +39,7 @@ def main():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 1000
+    keypoints_num = 500
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     last_frame = None
     F = 400
@@ -51,10 +66,10 @@ def main():
 
     
 
-    # camera coordinate system X,Y,Z
+    # camera coordinate system X,Y,Z    <--------
     #                                           |
     # image coordinates system U,V              |
-    # |u'|                       |X|             V
+    # |u'|                       |X|            V
     # |v'| = intrinsic_matrix *  |Y| <-- (camera coordinate system)
     # |w'|                       |Z|
     #
@@ -64,7 +79,7 @@ def main():
     # relation between camera coordinates system and world coordinates system
     # is camera_coord_system = rotation_matrix * world_coord_system - rotation_matrix * camera_pose
 
-    # 3D points in reality should be extrinsic_matrix**(-1) * (u, v, 1)
+    # 3D points in world coordinate system should be extrinsic_matrix**(-1) * (u, v, 1)
 
     print(intrinsic_matrix)
 
@@ -124,6 +139,7 @@ def main():
                         file.write(str(z))
                         file.write('\n')
                         points_num = points_num + 1
+                        tree.add(Point(pt[0][0], pt[1][0], z))
             points_in_frame.write(str(points_num))
             points_in_frame.write('\n')
             position = position[0], position[1], position[2] + 100
@@ -133,15 +149,15 @@ def main():
                 center = (frame.shape[1]//2, frame.shape[0])
             gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)  
             kp = orb.detect(frame, None)
-            #img = cv.drawKeypoints(frame, kp, frame)
+            if frame is not None and kp2 is not None:
+                img = cv.drawKeypoints(frame, [kp2[m.trainIdx] for m in matches], frame)
             img = frame
             if img is not None and matches is not None:
-                for m in matches[150:250]:
+                for m in matches:
                     cv.line(img, (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), (int(kp2[m.trainIdx].pt[0]), int(kp2[m.trainIdx].pt[1])), (255,0,0), 1)
             # perspective lines
-            
             cv.imshow('Frame', img)
-            #sys.stdin.readline()
+            sys.stdin.readline()
             last_frame = frame
             if cv.waitKey(25) & 0xFF == ord('q'):
                 break
