@@ -338,7 +338,7 @@ int main() {
   while (running) {
     time = clock.restart();
     licznik++;
-    float cameraSpeed = 0.00005f * time.asMicroseconds();
+    float cameraSpeed = 0.000002f * time.asMicroseconds();
     float ffps = 1000000 / time.asMicroseconds();
     if (licznik > ffps) {
       window.setTitle(std::to_string(ffps));
