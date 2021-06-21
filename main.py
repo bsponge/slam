@@ -1,64 +1,41 @@
 import cv2 as cv
-import matplotlib.pyplot as plt
 import numpy as np
 from cv2.xfeatures2d import matchGMS
 import numpy as np
 import sys
 import kdtree
 import collections
+from Analyser import *
+from Matcher import *
 
-class Mapper:
-    def __init__(self):
-        self.val = 'sijsflkdjfjj'
-
-    def print(self):
-        print('siema')
-
-
-def match(kp1, kp2, des1, des2, shape1, shape2, orb, matcher):
-    matches_all = matcher.knnMatch(des1, des2, k=2)
-    #matches_all = matcher.match(des1, des2)
-    #matches_gms = matchGMS(shape1[:2], shape2[:2], kp1, kp2, matches_all)
-    #matches_gms = sorted(matches_gms, key = lambda x: x.distance)
-    good = []
-    for m,n in matches_all:
-        # 0.50 ???
-        if m.distance < 0.50*n.distance and m.distance > 0.05*n.distance:
-            good.append(m)
-    return good
 
 def main():
     Point = collections.namedtuple('Point', 'x y z')
-    tree = kdtree.create(dimensions=3)
-    mapper = Mapper()
-    mapper.print()
-    matcher = cv.BFMatcher(cv.NORM_HAMMING)
-    cap = cv.VideoCapture('movie1.mp4')
+    
+    
 
+    cap = cv.VideoCapture('movie.mov')
     if not cap.isOpened():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 1000
-    orb = cv.ORB_create(keypoints_num, fastThreshold=0)
+    keypoints_num = 1000 
     last_frame = None
+    # focal length
     F = 910
 
     # test, should be obtained from frame info
     width = 1920 / 2
     height = 1080 / 2
 
-    intrinsic_matrix = np.zeros((3,3))
-    intrinsic_matrix[0][0] = F/width
-    intrinsic_matrix[1][1] = F/height
-    intrinsic_matrix[2][2] = F
-    intrinsic_matrix[0][1] = 0
-    intrinsic_matrix[0][2] = width / 2
-    intrinsic_matrix[1][2] = height / 2
+    intrinsic_matrix = np.array([
+        [F/width,   0,          width/2],
+        [0,         F/height,   height/2],
+        [0,         0,          1]
+    ])
 
     # camera location
     camera_pose = np.empty((3,1))
-
     rotation_matrix = np.identity(3)
     
     # extrinsic_matrix aka view_matrix (OpenGL)
@@ -81,14 +58,16 @@ def main():
 
     # 3D points in world coordinate system should be extrinsic_matrix**(-1) * (u, v, 1)
 
-    print(intrinsic_matrix)
-
     file = open('points', 'w')
     points_in_frame = open('points_in_frame', 'w')
 
     center = None
 
-    position = 0.0, 0.0, 0.0
+    position = 0.5, 0., 0.0
+
+    orb = cv.ORB_create(keypoints_num, fastThreshold=0)
+    mth = cv.BFMatcher(cv.NORM_HAMMING)
+    matcher = Matcher(mth)
     
 
     while cap.isOpened(): 
@@ -112,14 +91,13 @@ def main():
             
         """
 
-
         if last_frame is not None and frame is not None:
             
             # get keypoints and descriptors
             kp1, des1 = orb.detectAndCompute(last_frame, None)
             kp2, des2 = orb.detectAndCompute(frame, None)
             # get matches
-            matches = match(kp1, kp2, des1, des2, last_frame.shape, frame.shape, orb, matcher)
+            matches = matcher.match(kp1, kp2, des1, des2)
             # iterate through matches and save matching points to the file
             points_num = 0
             for m in matches:
@@ -139,6 +117,7 @@ def main():
                     if dx != 0.0:
                         slope = (kp1[m.queryIdx].pt[1]-kp2[m.trainIdx].pt[1]) / dx
 
+                    # ? probably doesn't matter
                     if slope < 14 and slope > -14:
                         # distance between center and keypoint from current frame
                         x, y = kp2[m.trainIdx].pt
@@ -153,12 +132,10 @@ def main():
                         pt = np.linalg.inv(intrinsic_matrix)
                         pt = pt.dot(img_pt)
 
+                        #
+                        # z = ?
+                        #
                         
-
-                        #pt[1][0] = pt[1][0] * m.distance * abs(m2) * 0.1
-
-                        z = m.distance * abs(m2) + position[2]
-
                         file.write(str(pt[0][0]))
                         file.write(' ')
                         #file.write(str(3*y*(40.0/m.distance)))
@@ -167,10 +144,9 @@ def main():
                         file.write(str(pt[2][0] + position[2]))
                         file.write('\n')
                         points_num = points_num + 1
-                        tree.add(Point(pt[0][0], pt[1][0], z))
             points_in_frame.write(str(points_num))
             points_in_frame.write('\n')
-            position = position[0], position[1], position[2] + 70
+            position = position[0], position[1], position[2] + 5
         # display frames of the video
         if ret:
             if frame is not None:
@@ -181,11 +157,11 @@ def main():
                 img = cv.drawKeypoints(frame, [kp2[m.trainIdx] for m in matches], frame)
             img = frame
             if img is not None and matches is not None:
-                for m in matches[100:120]:
+                for m in matches[100:110]:
                     cv.line(img, (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), (int(kp2[m.trainIdx].pt[0]), int(kp2[m.trainIdx].pt[1])), (255,0,0), 1)
                     d = kp1[m.queryIdx].pt[0] - kp2[m.trainIdx].pt[0]
                     if d != 0.0:
-                        img = cv.putText(img, str((kp1[m.trainIdx].pt[1]-kp2[m.trainIdx].pt[1])/d), (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), cv.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1, cv.LINE_AA)
+                        img = cv.putText(img, str((kp1[m.trainIdx].pt[1]-kp2[m.trainIdx].pt[1])/d), (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), cv.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 1, cv.LINE_AA)
             # perspective lines
             cv.imshow('Frame',img)
             #sys.stdin.readline()
