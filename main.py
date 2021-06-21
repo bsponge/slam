@@ -14,7 +14,7 @@ def main():
     
     
 
-    cap = cv.VideoCapture('movie.mov')
+    cap = cv.VideoCapture('movie1.mp4')
     if not cap.isOpened():
         print('Error opening video file!')
         exit(1)
@@ -22,7 +22,7 @@ def main():
     keypoints_num = 1000 
     last_frame = None
     # focal length
-    F = 910
+    F = 300
 
     # test, should be obtained from frame info
     width = 1920 / 2
@@ -41,7 +41,17 @@ def main():
     # extrinsic_matrix aka view_matrix (OpenGL)
     extrinsic_matrix = np.hstack((rotation_matrix, camera_pose))
 
-    
+    # in pixel coords
+    fundamental_matrix = None
+    # normalized image coords
+    essential_matrix = None
+
+    """
+    One way to get a 3D position from a pair of matching points from two images is to take the fundamental matrix,
+    compute the essential matrix, and then to get the rotation and translation between the cameras from the essential matrix.
+    This, of course, assumes that you know the intrinsics of your camera.
+    Also, this would give you up-to-scale reconstruction, with the translation being a unit vector.
+    """
 
     # camera coordinate system X,Y,Z    <--------
     #                                           |
@@ -135,7 +145,8 @@ def main():
                         #
                         # z = ?
                         #
-                        
+                        pt[2][0] *= width*20/m.distance
+
                         file.write(str(pt[0][0]))
                         file.write(' ')
                         #file.write(str(3*y*(40.0/m.distance)))
@@ -159,9 +170,11 @@ def main():
             if img is not None and matches is not None:
                 for m in matches[100:110]:
                     cv.line(img, (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), (int(kp2[m.trainIdx].pt[0]), int(kp2[m.trainIdx].pt[1])), (255,0,0), 1)
+                    """
                     d = kp1[m.queryIdx].pt[0] - kp2[m.trainIdx].pt[0]
                     if d != 0.0:
                         img = cv.putText(img, str((kp1[m.trainIdx].pt[1]-kp2[m.trainIdx].pt[1])/d), (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), cv.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 1, cv.LINE_AA)
+                    """
             # perspective lines
             cv.imshow('Frame',img)
             #sys.stdin.readline()
