@@ -28,9 +28,10 @@ const char* vertexSource =
 const char* fragmentSource =
 "#version 150 core\n"
 "out vec4 Color;\n"
+"uniform vec3 color;\n"
 " "
 "void main() {\n"
-" Color = vec4(1.0, 1.0, 1.0, 1.0);\n"
+" Color = vec4(color, 1.0);\n"
 "}\n";
 
 bool firstMouse = true;
@@ -245,7 +246,7 @@ int main() {
 
   float* points = nullptr;
 
-  const char* points_filename = "../../points";
+  const char* points_filename = "../../camera_pose";
   const char* points_num_filename = "../../points_in_frame";
   //int points_size = loadVertices(vbo, "/home/js/python/slam/points");
   int points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
@@ -318,6 +319,10 @@ int main() {
   GLint uniProj = glGetUniformLocation(shaderProgram, "proj");
 
   glUniformMatrix4fv(uniProj, 1, GL_FALSE, glm::value_ptr(proj));
+
+  glm::vec3 color(1.0, 1.0, 1.0);
+  GLint unicolor = glGetUniformLocation(shaderProgram, "color");
+  glUniform3fv(unicolor, 1, glm::value_ptr(color));
 
   sf::Clock clock;
   sf::Time time;
@@ -400,6 +405,7 @@ int main() {
             case sf::Keyboard::R:
               ++frames_num;
               points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
+              std::cout << "points_size: " << points_size << std::endl;
               break;
             case sf::Keyboard::E:
               if (frames_num > 1) {
@@ -413,6 +419,10 @@ int main() {
     } 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    color.x += 0.1;
+    color.x = sin(color.x);
+    glUniform3fv(unicolor, 1, glm::value_ptr(color));
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glPointSize(1.0);

@@ -27,7 +27,7 @@ def main():
     keypoints_num = 1000 
     last_frame = None
     # focal length
-    F = 300
+    F = 210
 
     # test, should be obtained from frame info
     width = 1920 / 2
@@ -75,10 +75,11 @@ def main():
 
     file = open('points', 'w')
     points_in_frame = open('points_in_frame', 'w')
+    camera_pose_file = open('camera_pose', 'w')
 
     center = None
 
-    position = 0.5, 0., 0.0
+    position = np.array([0.0, 0.0, 0.0])
 
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     mth = cv.BFMatcher(cv.NORM_HAMMING)
@@ -93,7 +94,7 @@ def main():
         kp1, kp2, matches = None, None, None
 
         if last_frame is not None and frame is not None: 
-            points_num = 0
+            points_num = 1
             kp1, des1 = orb.detectAndCompute(last_frame, None)
             kp2, des2 = orb.detectAndCompute(frame, None)
 
@@ -102,7 +103,7 @@ def main():
             pts2 = []
 
             for m in matches:
-                if m.distance < 30:
+                if m.distance < 10 and m.distance > 3:
                     pts1.append(kp1[m.queryIdx].pt)
                     pts2.append(kp2[m.trainIdx].pt)
 
@@ -115,12 +116,35 @@ def main():
             if pts1.shape[0] != 0 and pts2.shape[0] != 0:
                 F, mask = cv.findFundamentalMat(pts1, pts2, cv.FM_8POINT)
                 inv = np.linalg.inv(intrinsic_matrix)
-                E = inv.transpose().dot(F).dot(intrinsic_matrix)
+                E = intrinsic_matrix.transpose().dot(F).dot(intrinsic_matrix)
                 print('fundamental')
                 print(F)
                 print('essential')
                 print(E)
-                u, s, vh = np.linalg.svd(E)
+                w, u, vt = cv.SVDecomp(E)
+                W = np.array([
+                    [0.0,   -1.0,   0.0],
+                    [1.0,   0.0,    0.0],
+                    [0.0,   0.0,    1.0]
+                ])
+                if np.linalg.det(u) < 0:
+                    u *= -1.0
+                if np.linalg.det(vt) < 0:
+                    vt *= -1.0
+
+                R = np.mat(u) * W * np.mat(vt)
+                t = u[:, 2]
+                print('R')
+                print(R)
+                print('t')
+                print(t)
+                position += t*3.0
+                camera_pose_file.write(str(position[0]))
+                camera_pose_file.write(' ')
+                camera_pose_file.write(str(position[1]))
+                camera_pose_file.write(' ')
+                camera_pose_file.write(str(position[2]))
+                camera_pose_file.write('\n')
 
 
             """
@@ -165,7 +189,6 @@ def main():
 
                         file.write(str(pt[0][0]))
                         file.write(' ')
-                        #file.write(str(3*y*(40.0/m.distance)))
                         file.write(str(pt[1][0]))
                         file.write(' ')
                         file.write(str(pt[2][0] + position[2]))
@@ -200,7 +223,6 @@ def main():
             """
             points_in_frame.write(str(points_num))
             points_in_frame.write('\n')
-            position = position[0], position[1], position[2] + 5
         # display frames of the video
         last_frame = frame
         if ret:
