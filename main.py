@@ -27,7 +27,7 @@ def main():
     keypoints_num = 1000 
     last_frame = None
     # focal length
-    F = 210
+    F = 910
 
     # test, should be obtained from frame info
     width = 1920 / 2
@@ -79,7 +79,7 @@ def main():
 
     center = None
 
-    position = np.array([0.0, 0.0, 0.0])
+    position = np.array([0.0, 0.0, 0.0]).reshape(1,3)
 
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     mth = cv.BFMatcher(cv.NORM_HAMMING)
@@ -135,15 +135,19 @@ def main():
                 R = np.mat(u) * W * np.mat(vt)
                 t = u[:, 2]
                 print('R')
-                print(R)
+                print(R, R.shape)
                 print('t')
+                print(t, t.shape)
+                print('new t')
+                t = R.dot(t)
                 print(t)
-                position += t*3.0
-                camera_pose_file.write(str(position[0]))
+                t[0] *= 75.0
+                position += t
+                camera_pose_file.write(str(position[0][1]))
                 camera_pose_file.write(' ')
-                camera_pose_file.write(str(position[1]))
+                camera_pose_file.write(str(position[0][1]))
                 camera_pose_file.write(' ')
-                camera_pose_file.write(str(position[2]))
+                camera_pose_file.write(str(position[0][2]))
                 camera_pose_file.write('\n')
 
 

@@ -39,7 +39,7 @@ int lastX, lastY;
 double yaw = 45.0;
 double pitch = 0.0;
 
-glm::vec3 cameraPos = glm::vec3(0.3f, 0.3f, 3.0f);
+glm::vec3 cameraPos = glm::vec3(0.3f, 0.3f, 0.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -343,7 +343,7 @@ int main() {
   while (running) {
     time = clock.restart();
     licznik++;
-    float cameraSpeed = 0.000002f * time.asMicroseconds();
+    float cameraSpeed = 0.000005f * time.asMicroseconds();
     float ffps = 1000000 / time.asMicroseconds();
     if (licznik > ffps) {
       window.setTitle(std::to_string(ffps));
