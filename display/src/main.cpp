@@ -255,6 +255,21 @@ int main() {
     return 1;
   }
 
+  /*
+  GLuint axes;
+  glGenBuffers(1, &axes);
+  float buffer[] = {
+    0.0, 0.0, 0.0,
+    1.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 1.0
+  };
+  glBindBuffer(GL_ARRAY_BUFFER, axes);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GL_FLOAT)*sizeof(buffer), buffer, GL_STATIC_DRAW);
+  */
+
 
   std::cout << "points size: " << points_size << std::endl;
 
@@ -343,7 +358,7 @@ int main() {
   while (running) {
     time = clock.restart();
     licznik++;
-    float cameraSpeed = 0.000005f * time.asMicroseconds();
+    float cameraSpeed = 0.0000005f * time.asMicroseconds();
     float ffps = 1000000 / time.asMicroseconds();
     if (licznik > ffps) {
       window.setTitle(std::to_string(ffps));
@@ -427,6 +442,11 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glPointSize(1.0);
     glDrawArrays(GL_POINTS, 0, points_size/3);
+
+    /*
+    glBindBuffer(GL_ARRAY_BUFFER, axes);
+    glDrawArrays(GL_LINES, 0, sizeof(axes)/3);
+    */
 
     window.display();
   }

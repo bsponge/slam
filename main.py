@@ -13,6 +13,11 @@ import collections
 from Analyser import *
 from Matcher import *
 
+def normalize(pts, width, height):
+    pts[0,:] /= width
+    pts[1,:] /= height
+    return pts
+
 
 def main():
     Point = collections.namedtuple('Point', 'x y z')
@@ -27,7 +32,7 @@ def main():
     keypoints_num = 1000 
     last_frame = None
     # focal length
-    F = 910
+    F = 400
 
     # test, should be obtained from frame info
     width = 1920 / 2
@@ -79,7 +84,10 @@ def main():
 
     center = None
 
-    position = np.array([0.0, 0.0, 0.0]).reshape(1,3)
+    position = np.array([0.0, 0.0, 0.0])
+    rotations = []
+    translations = []
+    projections = []
 
     orb = cv.ORB_create(keypoints_num, fastThreshold=0)
     mth = cv.BFMatcher(cv.NORM_HAMMING)
@@ -92,114 +100,88 @@ def main():
         if frame is not None:
             frame = cv.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
         kp1, kp2, matches = None, None, None
+        
 
         if last_frame is not None and frame is not None: 
             points_num = 1
             kp1, des1 = orb.detectAndCompute(last_frame, None)
             kp2, des2 = orb.detectAndCompute(frame, None)
 
+
             matches = matcher.match(kp1, kp2, des1, des2)
             pts1 = []
             pts2 = []
 
             for m in matches:
-                if m.distance < 10 and m.distance > 3:
+                if m.distance < 10:
                     pts1.append(kp1[m.queryIdx].pt)
                     pts2.append(kp2[m.trainIdx].pt)
 
             pts1 = np.asarray(pts1)
             pts2 = np.asarray(pts2)
-            print(f'pts1: {pts1.shape}, pts2: {pts2.shape}')
-
-            print(f'lastframeshape: {last_frame.shape}, frameshape: {frame.shape}')
 
             if pts1.shape[0] != 0 and pts2.shape[0] != 0:
-                F, mask = cv.findFundamentalMat(pts1, pts2, cv.FM_8POINT)
-                inv = np.linalg.inv(intrinsic_matrix)
-                E = intrinsic_matrix.transpose().dot(F).dot(intrinsic_matrix)
-                print('fundamental')
-                print(F)
-                print('essential')
-                print(E)
-                w, u, vt = cv.SVDecomp(E)
-                W = np.array([
-                    [0.0,   -1.0,   0.0],
-                    [1.0,   0.0,    0.0],
-                    [0.0,   0.0,    1.0]
-                ])
-                if np.linalg.det(u) < 0:
-                    u *= -1.0
-                if np.linalg.det(vt) < 0:
-                    vt *= -1.0
-
-                R = np.mat(u) * W * np.mat(vt)
-                t = u[:, 2]
+                E, _ = cv.findEssentialMat(pts1, pts2, intrinsic_matrix, cv.LMEDS, 0.999999, 1)
+                retval, R, t, mask = cv.recoverPose(E, pts1, pts2, intrinsic_matrix)
+                
+                rotations.append(R)
+                translations.append(t)
+                projections.append(intrinsic_matrix.dot(np.hstack((R, t))))
                 print('R')
-                print(R, R.shape)
+                print(R)
                 print('t')
-                print(t, t.shape)
-                print('new t')
-                t = R.dot(t)
                 print(t)
-                t[0] *= 75.0
+                print('Rt')
+                print(np.hstack((R, t)))
+
+                """
+                pts1[:,0] /= width
+                pts1[:,1] /= height
+                pts2[:,0] /= width
+                pts2[:,1] /= height
+                """
+
+                t = R.dot(t.flatten())
                 position += t
-                camera_pose_file.write(str(position[0][1]))
+                camera_pose_file.write(str(position[0]))
                 camera_pose_file.write(' ')
-                camera_pose_file.write(str(position[0][1]))
+                camera_pose_file.write(str(position[1]))
                 camera_pose_file.write(' ')
-                camera_pose_file.write(str(position[0][2]))
+                camera_pose_file.write(str(position[2]))
                 camera_pose_file.write('\n')
 
+                E, _ = cv.findEssentialMat(pts1, pts2, intrinsic_matrix, cv.LMEDS)
+                retval, R, t, mask = cv.recoverPose(E, pts1, pts2, intrinsic_matrix)
+                p0 = intrinsic_matrix.dot(np.hstack((R,position.reshape(3,1)-t)))
+                print('p0')
+                print(p0)
+                retval, R, t, mask = cv.recoverPose(E, pts2, pts1, intrinsic_matrix)
+                p1 = intrinsic_matrix.dot(np.hstack((R,t)))
+                print('p1')
+                print(p1)
 
-            """
-            for m in matches:
-                #if m.distance < 80:
-                if True:
-                    # y = mx + b
-                    div1 = center[0]-kp1[m.queryIdx].pt[0]
-                    if div1 != 0.0:
-                        m1 = (center[1]-kp1[m.queryIdx].pt[1]) / div1
-                    div2 = center[0]-kp2[m.queryIdx].pt[0]
-                    if div2 != 0.0:
-                        m2 = (center[1]-kp2[m.trainIdx].pt[1]) / div2
-                    # if slope difference of linear functions defined by center point and keypoint is higher than 10 degrees then discard
-                    #if abs(m2-m1) < 0.20:
-                    dx = abs(kp1[m.queryIdx].pt[0] - kp2[m.trainIdx].pt[0])
-                    slope = 0
+                pts1 = pts1.reshape(pts1.shape[1], pts1.shape[0])
+                pts2 = pts2.reshape(pts2.shape[1], pts2.shape[0])
+                print(pts1[:, 0])
 
-                    if dx != 0.0:
-                        slope = (kp1[m.queryIdx].pt[1]-kp2[m.trainIdx].pt[1]) / dx
+                print(pts1.shape)
+                pts1 = normalize(pts1, width, height)
+                pts2 = normalize(pts2, width, height)
+                print(pts1[:, 0])
 
-
-                    # ? probably doesn't matter
-                    if slope < 14 and slope > -14:
-                        # distance between center and keypoint from current frame
-                        x, y = kp2[m.trainIdx].pt
-                        distance = ((center[0] - kp2[m.trainIdx].pt[0])**2+(center[1] - kp2[m.trainIdx].pt[1])**2)**(1/2)
-                        max_distance = ((center[0])**2+(center[1])**2)**(1/2)
-                        m.distance > frame.shape[1]//2
-                        
-                        img_pt = np.zeros((3,1), dtype=float)
-                        img_pt[0][0] = float(x)
-                        img_pt[1][0] = float(y)
-                        img_pt[2][0] = 1.0
-                        pt = np.linalg.inv(intrinsic_matrix)
-                        pt = pt.dot(img_pt)
-
-                        #
-                        # z = ?
-                        #
-                        pt[2][0] *= width*20/m.distance
-
-                        file.write(str(pt[0][0]))
+                if len(projections) > 1:
+                    triangulated_points = cv.triangulatePoints(p0, p1, pts1, pts2)
+                    for i in range(triangulated_points.shape[1]):
+                        file.write(str(60*triangulated_points[0,i]))
                         file.write(' ')
-                        file.write(str(pt[1][0]))
+                        file.write(str(60*triangulated_points[1,i]))
                         file.write(' ')
-                        file.write(str(pt[2][0] + position[2]))
+                        file.write(str(60*triangulated_points[2,i]+160*position[2]))
                         file.write('\n')
-                        points_num = points_num + 1
-            """
-            
+    
+
+                #points_num = len(triangulated_points)
+                        
             """
             last_frame, frame = map(rgb2gray, (last_frame, frame))
             descriptor_extractor = ORB()
@@ -228,9 +210,8 @@ def main():
             points_in_frame.write(str(points_num))
             points_in_frame.write('\n')
         # display frames of the video
-        last_frame = frame
+        
         if ret:
-
             """
             kp = orb.detect(frame, None)
             if frame is not None and kp2 is not None:
@@ -251,6 +232,7 @@ def main():
                 break
         else:
             break
+        last_frame = frame
     file.close()
 
     cap.release()
