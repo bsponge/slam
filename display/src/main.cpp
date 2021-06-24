@@ -150,9 +150,9 @@ int loadPointsFromFrame(int frame, int buffer, const char* points_filename, cons
     }
 
     for (i = 0; i < real_size; i += 3) {
-      tmp_arr[i] /= 1000;
-      tmp_arr[i+1] /= 1000;
-      tmp_arr[i+2] /= 1000;
+      tmp_arr[i] /= 10000;
+      tmp_arr[i+1] /= 10000;
+      tmp_arr[i+2] /= 10000;
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -246,7 +246,7 @@ int main() {
 
   float* points = nullptr;
 
-  const char* points_filename = "../../camera_pose";
+  const char* points_filename = "../../points";
   const char* points_num_filename = "../../points_in_frame";
   //int points_size = loadVertices(vbo, "/home/js/python/slam/points");
   int points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
@@ -254,6 +254,7 @@ int main() {
     std::cout << "ERROR WHILE LOADING VERTICES" << std::endl;
     return 1;
   }
+
 
   /*
   GLuint axes;
@@ -358,7 +359,7 @@ int main() {
   while (running) {
     time = clock.restart();
     licznik++;
-    float cameraSpeed = 0.0000005f * time.asMicroseconds();
+    float cameraSpeed = 0.000003f * time.asMicroseconds();
     float ffps = 1000000 / time.asMicroseconds();
     if (licznik > ffps) {
       window.setTitle(std::to_string(ffps));
@@ -419,13 +420,21 @@ int main() {
               break; 
             case sf::Keyboard::R:
               ++frames_num;
-              points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
-              std::cout << "points_size: " << points_size << std::endl;
+              {
+                int copy = points_size;
+                points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
+                if (points_size == copy) {
+                  --frames_num;
+                }
+                std::cout << "points_size: " << (points_size/3) << std::endl;
+              }
+
               break;
             case sf::Keyboard::E:
               if (frames_num > 1) {
                 --frames_num;
                 points_size = loadPointsFromFrame(frames_num, vbo, points_filename, points_num_filename);
+                std::cout << "points_size: " << (points_size/3) << std::endl;
               }
               break;
           }

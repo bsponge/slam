@@ -29,10 +29,10 @@ def main():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 1000 
+    keypoints_num = 10000
     last_frame = None
     # focal length
-    F = 400
+    F = 900
 
     # test, should be obtained from frame info
     width = 1920 / 2
@@ -45,16 +45,10 @@ def main():
     ])
 
     # camera location
-    camera_pose = np.empty((3,1))
-    rotation_matrix = np.identity(3)
-    
-    # extrinsic_matrix aka view_matrix (OpenGL)
-    extrinsic_matrix = np.hstack((rotation_matrix, camera_pose))
+    IRt = np.eye(4)[:3]
 
-    # in pixel coords
-    fundamental_matrix = None
-    # normalized image coords
-    essential_matrix = None
+    camera_pose = IRt
+    rotation_matrix = np.identity(3)
 
     """
     One way to get a 3D position from a pair of matching points from two images is to take the fundamental matrix,
@@ -81,6 +75,7 @@ def main():
     file = open('points', 'w')
     points_in_frame = open('points_in_frame', 'w')
     camera_pose_file = open('camera_pose', 'w')
+    camera_points_file = open('camera_points', 'w')
 
     center = None
 
@@ -98,6 +93,7 @@ def main():
         # get frame
         ret, frame = cap.read()
         if frame is not None:
+            print(frame.shape)
             frame = cv.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
         kp1, kp2, matches = None, None, None
         
@@ -121,18 +117,26 @@ def main():
             pts2 = np.asarray(pts2)
 
             if pts1.shape[0] != 0 and pts2.shape[0] != 0:
-                E, _ = cv.findEssentialMat(pts1, pts2, intrinsic_matrix, cv.LMEDS, 0.999999, 1)
+                E, mask = cv.findEssentialMat(pts1, pts2, intrinsic_matrix, cv.LMEDS, 0.999999, 1.0)
+                ptss1 = []
+                ptss2 = []
+                for i in range(len(mask)):
+                    if mask[i][0] == 0:
+                        ptss1.append(pts1[i])
+                        ptss2.append(pts2[i])
+                pts1 = np.asarray(ptss1)
+                pts2 = np.asarray(ptss2)
                 retval, R, t, mask = cv.recoverPose(E, pts1, pts2, intrinsic_matrix)
-                
+                ptss1 = []
+                ptss2 = []
+                for i in range(len(mask)):
+                    if mask[i][0] == 0:
+                        ptss1.append(pts1[i])
+                        ptss2.append(pts2[i])
+               
                 rotations.append(R)
                 translations.append(t)
                 projections.append(intrinsic_matrix.dot(np.hstack((R, t))))
-                print('R')
-                print(R)
-                print('t')
-                print(t)
-                print('Rt')
-                print(np.hstack((R, t)))
 
                 """
                 pts1[:,0] /= width
@@ -141,74 +145,59 @@ def main():
                 pts2[:,1] /= height
                 """
 
-                t = R.dot(t.flatten())
-                position += t
-                camera_pose_file.write(str(position[0]))
-                camera_pose_file.write(' ')
-                camera_pose_file.write(str(position[1]))
-                camera_pose_file.write(' ')
-                camera_pose_file.write(str(position[2]))
-                camera_pose_file.write('\n')
 
-                E, _ = cv.findEssentialMat(pts1, pts2, intrinsic_matrix, cv.LMEDS)
-                retval, R, t, mask = cv.recoverPose(E, pts1, pts2, intrinsic_matrix)
-                p0 = intrinsic_matrix.dot(np.hstack((R,position.reshape(3,1)-t)))
-                print('p0')
-                print(p0)
-                retval, R, t, mask = cv.recoverPose(E, pts2, pts1, intrinsic_matrix)
-                p1 = intrinsic_matrix.dot(np.hstack((R,t)))
+                #t = R.dot(t.flatten())
+                #position += t
+                print('t')
+                print(t)
+                
+                
+                p1 = np.hstack((R,t))
                 print('p1')
                 print(p1)
 
+                """
+                pts1 = cv.undistortPoints(pts1, intrinsic_matrix, None)
+                pts2 = cv.undistortPoints(pts2, intrinsic_matrix, None)
+                print(pts1.shape)
+                """
+
                 pts1 = pts1.reshape(pts1.shape[1], pts1.shape[0])
                 pts2 = pts2.reshape(pts2.shape[1], pts2.shape[0])
-                print(pts1[:, 0])
 
-                print(pts1.shape)
                 pts1 = normalize(pts1, width, height)
                 pts2 = normalize(pts2, width, height)
-                print(pts1[:, 0])
+                scale = 1
+                position += t.flatten()
+                
 
+                camera_pose_file.write(str(scale*position[0]))
+                camera_pose_file.write(' ')
+                camera_pose_file.write(str(scale*position[1]))
+                camera_pose_file.write(' ')
+                camera_pose_file.write(str(scale*position[2]))
+                camera_pose_file.write('\n')
+
+                camera_points_file.write(str(1))
+                camera_points_file.write('\n')
+
+                
                 if len(projections) > 1:
-                    triangulated_points = cv.triangulatePoints(p0, p1, pts1, pts2)
+                    triangulated_points = cv.triangulatePoints(IRt, p1, pts1, pts2)
+                    print(triangulated_points.shape)
                     for i in range(triangulated_points.shape[1]):
-                        file.write(str(60*triangulated_points[0,i]))
+                        file.write(str(scale*triangulated_points[0,i]/triangulated_points[3,i]))
                         file.write(' ')
-                        file.write(str(60*triangulated_points[1,i]))
+                        file.write(str(scale*triangulated_points[1,i]/triangulated_points[3,i]))
                         file.write(' ')
-                        file.write(str(60*triangulated_points[2,i]+160*position[2]))
+                        file.write(str(scale*triangulated_points[2,i]/triangulated_points[3,i]))
                         file.write('\n')
-    
-
-                #points_num = len(triangulated_points)
-                        
-            """
-            last_frame, frame = map(rgb2gray, (last_frame, frame))
-            descriptor_extractor = ORB()
-            print(last_frame.shape)
-            descriptor_extractor.detect_and_extract(last_frame)
-            keypoints_left = descriptor_extractor.keypoints
-            descriptors_left = descriptor_extractor.descriptors
-
-            descriptor_extractor.detect_and_extract(frame)
-            keypoints_right = descriptor_extractor.keypoints
-            descriptors_right = descriptor_extractor.descriptors
-            matches = match_descriptors(descriptors_left, descriptors_right,
-                            cross_check=True)
-
-            model, inliers = ransac((keypoints_left[matches[:, 0]],
-                                     keypoints_right[matches[:, 1]]),
-                                     FundamentalMatrixTransform, min_samples=8,
-                                     residual_threshold=1, max_trials=5000)
-
-            inlier_keypoints_left = keypoints_left[matches[inliers, 0]]
-            inlier_keypoints_right = keypoints_right[matches[inliers, 1]]
-
-            print(f"Number of matches: {matches.shape[0]}")
-            print(f"Number of inliers: {inliers.sum()}")
-            """
-            points_in_frame.write(str(points_num))
-            points_in_frame.write('\n')
+                    points_num = triangulated_points.shape[1]
+                    points_in_frame.write(str(points_num))
+                    points_in_frame.write('\n')
+                    print(triangulated_points.shape[1])
+            
+            
         # display frames of the video
         
         if ret:
