@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import cv2 as cv
 import numpy as np
 from cv2.xfeatures2d import matchGMS
@@ -24,7 +26,7 @@ def main():
     
     
 
-    cap = cv.VideoCapture('movie1.mp4')
+    cap = cv.VideoCapture('movie.mov')
     if not cap.isOpened():
         print('Error opening video file!')
         exit(1)
