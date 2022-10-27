@@ -12,6 +12,8 @@ async function start() {
     console.log("GLSL version: " + gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
     console.log("Vendor: " + gl.getParameter(gl.VENDOR));
 
+    let cameraSpeed = 0.05;
+
     const vs = gl.createShader(gl.VERTEX_SHADER);
     const fs = gl.createShader(gl.FRAGMENT_SHADER);
     const program = gl.createProgram();
@@ -36,6 +38,14 @@ async function start() {
             document.removeEventListener("mousemove", ustaw_kamere_mysz, false);
         }
     }
+    document.addEventListener('wheel', event => {
+        console.log(event)
+        if (event.deltaY > 0) {
+            cameraSpeed *= 0.5
+        } else {
+            cameraSpeed *= 1.5
+        }
+    })
 
     gl.enable(gl.DEPTH_TEST);
 
@@ -184,7 +194,7 @@ async function start() {
         y = e.offsetY;
     });
 
-    let cameraSpeed = 0.05;
+
     let cameraFrontTmp = glm.vec3(1, 1, 1);
 
     // Add the event listeners for keydown, keyup
