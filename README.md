@@ -4,7 +4,8 @@ slam algorithm
 
 # how to
 ```
-python main.py - generate points
+# generate points
+python3 main.py
 
 node server.js
 # and open display/js/site.html in browser
