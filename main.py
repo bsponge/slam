@@ -12,39 +12,45 @@ import numpy as np
 import sys
 import kdtree
 import collections
+import math
 from Analyser import *
 from Matcher import *
 
-def normalize(pts, width, height):
-    pts[0,:] /= width
-    pts[1,:] /= height
-    return pts
-
-
 def main():
     Point = collections.namedtuple('Point', 'x y z')
-    
-    
 
-    cap = cv.VideoCapture('movie.mov')
+    cap = cv.VideoCapture('movie1.mp4')
     if not cap.isOpened():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 10000
+    keypoints_num = 1000
     last_frame = None
     # focal length
-    F = 900
+    #F = 900
+    
 
     # test, should be obtained from frame info
-    width = 1920 / 2
-    height = 1080 / 2
+    width = 1920
+    height = 1080
+
+    info_cap = cv.VideoCapture('movie1.mp4')
+    if info_cap.isOpened():
+        width = info_cap.get(3)
+        height = info_cap.get(4)
+        info_cap.release()
+
+    Fx = width / math.tan(1.4486232792/2)
+    Fy = height / math.tan(1.4486232792/2)
 
     intrinsic_matrix = np.array([
-        [F/width,   0,          width/2],
-        [0,         F/height,   height/2],
-        [0,         0,          1]
+        [500,   0,    width/2 ],
+        [0,   500,    height/2],
+        [0,     0,    1       ]
     ])
+
+    print('intrinsic_matrix')
+    print(intrinsic_matrix)
 
     # camera location
     IRt = np.eye(4)[:3]
@@ -111,7 +117,7 @@ def main():
             pts2 = []
 
             for m in matches:
-                if m.distance < 10:
+                if m.distance < 30:
                     pts1.append(kp1[m.queryIdx].pt)
                     pts2.append(kp2[m.trainIdx].pt)
 
@@ -129,6 +135,9 @@ def main():
                 pts1 = np.asarray(ptss1)
                 pts2 = np.asarray(ptss2)
                 retval, R, t, mask = cv.recoverPose(E, pts1, pts2, intrinsic_matrix)
+
+                position += t.flatten()
+
                 ptss1 = []
                 ptss2 = []
                 for i in range(len(mask)):
@@ -138,7 +147,7 @@ def main():
                
                 rotations.append(R)
                 translations.append(t)
-                projections.append(intrinsic_matrix.dot(np.hstack((R, t))))
+                
 
                 """
                 pts1[:,0] /= width
@@ -147,16 +156,9 @@ def main():
                 pts2[:,1] /= height
                 """
 
-
-                #t = R.dot(t.flatten())
-                #position += t
-                print('t')
-                print(t)
-                
-                
-                p1 = np.hstack((R,t))
-                print('p1')
+                p1 = np.hstack((R,position.reshape((3,1))))
                 print(p1)
+                projections.append(intrinsic_matrix.dot(p1))
 
                 """
                 pts1 = cv.undistortPoints(pts1, intrinsic_matrix, None)
@@ -167,10 +169,13 @@ def main():
                 pts1 = pts1.reshape(pts1.shape[1], pts1.shape[0])
                 pts2 = pts2.reshape(pts2.shape[1], pts2.shape[0])
 
+                """
                 pts1 = normalize(pts1, width, height)
                 pts2 = normalize(pts2, width, height)
-                scale = 1
-                position += t.flatten()
+                """
+
+                scale = 30
+                
                 
 
                 camera_pose_file.write(str(scale*position[0]))
@@ -183,10 +188,10 @@ def main():
                 camera_points_file.write(str(1))
                 camera_points_file.write('\n')
 
+                IRt = intrinsic_matrix.dot(p1)
                 
                 if len(projections) > 1:
-                    triangulated_points = cv.triangulatePoints(IRt, p1, pts1, pts2)
-                    print(triangulated_points.shape)
+                    triangulated_points = cv.triangulatePoints(projections[-2], p1, pts1, pts2)
                     for i in range(triangulated_points.shape[1]):
                         file.write(str(scale*triangulated_points[0,i]/triangulated_points[3,i]))
                         file.write(' ')
@@ -197,7 +202,6 @@ def main():
                     points_num = triangulated_points.shape[1]
                     points_in_frame.write(str(points_num))
                     points_in_frame.write('\n')
-                    print(triangulated_points.shape[1])
             
             
         # display frames of the video

@@ -66,7 +66,7 @@ async function start() {
 			void main(void)
 			{
 			   gl_Position = proj * view * model * vec4(position, 1.0);
-               gl_PointSize = 3.0;
+               gl_PointSize = 2.0;
 			}
 			`;
 
@@ -370,22 +370,6 @@ async function start() {
                 tmpVec[i*3+j] = points[i*3+j]
                 realSize++
             }
-
-            if (Math.abs(tmpVec[i]) > maxX && i < realSize) {
-                maxX = Math.abs(tmpVec[i])
-            }
-            if (Math.abs(tmpVec[i+1]) > maxY && i < realSize+1) {
-                maxY = Math.abs(tmpVec[i+1])
-            }
-            if (Math.abs(tmpVec[i+2]) > maxZ && i < realSize+2) {
-                maxZ = Math.abs(tmpVec[i+2])
-            }
-        }
-
-        for (let i = 0; i < realSize; i+=3) {
-            tmpVec[i] /= 1000
-            tmpVec[i+1] /= 1000
-            tmpVec[i+2] /= 1000
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
