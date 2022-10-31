@@ -114,7 +114,7 @@ async function start() {
     gl.useProgram(program);
 
     const model = mat4.create();
-    const rotation = -25 * Math.PI / 180;
+    const rotation = 0;
     mat4.rotate(model, model, rotation, [0, 0, 1]);
 
     const view = mat4.create();
@@ -138,7 +138,7 @@ async function start() {
     let points = await fetchFile("http://localhost:5000/points")
     let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame")
 
-    let framesNum = 2;
+    let framesNum = 1;
     let pointsNum = loadPointsFromFrame(framesNum, points, pointsNumber)
     //kostka()
 

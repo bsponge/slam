@@ -21,8 +21,11 @@ class Matcher:
         orb = cv2.ORB_create()
         mth = cv2.BFMatcher(cv2.NORM_HAMMING)
 
-        pts1 = cv2.goodFeaturesToTrack(np.mean(first_frame, axis=2).astype(np.uint8), 10000, qualityLevel=0.001, minDistance=2)
-        pts2 = cv2.goodFeaturesToTrack(np.mean(second_frame, axis=2).astype(np.uint8), 10000, qualityLevel=0.001, minDistance=2)
+        first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
+        second_frame = cv2.cvtColor(second_frame, cv2.COLOR_BGR2GRAY)
+
+        pts1 = cv2.goodFeaturesToTrack(first_frame, 3000, qualityLevel=0.01, minDistance=10)
+        pts2 = cv2.goodFeaturesToTrack(second_frame, 3000, qualityLevel=0.01, minDistance=10)
 
         kps1 = [cv2.KeyPoint(x=f[0][0], y=f[0][1], size=10) for f in pts1]
         kps2 = [cv2.KeyPoint(x=f[0][0], y=f[0][1], size=10) for f in pts2]
@@ -34,7 +37,7 @@ class Matcher:
         p1 = []
         p2 = []
         for m,n in matches_all:
-            if m.distance < 0.8*n.distance:
+            if m.distance < 0.75*n.distance:
                 p1.append(kps1[m.queryIdx].pt)
                 p2.append(kps2[m.trainIdx].pt)
 
