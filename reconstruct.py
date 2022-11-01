@@ -9,15 +9,34 @@ from skimage.measure import ransac
 from skimage.transform import FundamentalMatrixTransform
 import numpy as np
 import sys
-import kdtree
 import collections
 import math
 import sys
-from Analyser import *
 from Matcher import *
 
+def save_camera_pose(camera_poses_file, camera_pose):
+    for i in range(3):
+        camera_poses_file.write(str(camera_pose[i, 3]))
+        camera_poses_file.write(' ')
 
-def reconstruct(f1, f2, K, prev_proj, matcher, points_file, points_in_frame_file, camera_pose_location_file, camera_pose_rotation_file):
+    for row in camera_pose[:, :3]:
+        for elem in row:
+            camera_poses_file.write(str(elem))
+            camera_poses_file.write(' ')
+
+    # add green
+    camera_poses_file.write(str(0.0))
+    camera_poses_file.write(' ')
+    camera_poses_file.write(str(1.0))
+    camera_poses_file.write(' ')
+    camera_poses_file.write(str(0.0))
+    camera_poses_file.write(' ')
+
+    camera_poses_file.write('\n')
+
+    
+
+def reconstruct(f1, f2, K, prev_proj, matcher, points_file, points_in_frame_file):
     pts1, pts2 = matcher.match(f1, f2)
 
     E, mask = cv2.findEssentialMat(pts1, pts2, K, cv2.RANSAC, 0.99999, 1.0) # last 3 args , cv2.RANSAC, 0.99, 0.01
@@ -37,13 +56,11 @@ def reconstruct(f1, f2, K, prev_proj, matcher, points_file, points_in_frame_file
     pts1 = np.array(p1_filtered)
     pts2 = np.array(p2_filtered)
 
-    ret, R, t, mask = cv.recoverPose(E, pts1, pts2, K)
+    ret, R, t, mask = cv2.recoverPose(E, pts1, pts2, K)
 
     first_camera_matrix = prev_proj
     second_camera_matrix = np.dot(K, np.hstack((R, t.reshape((3,1)))))
 
-    print('first_camera_matrix')
-    print(first_camera_matrix)
     print('second_camera_matrix')
     print(second_camera_matrix)
 
@@ -55,6 +72,8 @@ def reconstruct(f1, f2, K, prev_proj, matcher, points_file, points_in_frame_file
 
     scale = 1.0
 
+    # got to be removed and set in js!
+    # points color
     color = (1.0, 1.0, 1.0)
 
     triangulated_points = cv2.triangulatePoints(first_camera_matrix, second_camera_matrix, pts1, pts2).T
@@ -77,7 +96,6 @@ def reconstruct(f1, f2, K, prev_proj, matcher, points_file, points_in_frame_file
         points_file.write('\n')
 
     points_num = triangulated_points.shape[0]
-    #points_num = pts1.shape[1] + pts2.shape[1]
     points_in_frame_file.write(str(points_num))
     points_in_frame_file.write('\n')
 

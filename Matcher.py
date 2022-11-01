@@ -1,17 +1,10 @@
 import numpy as np
 import cv2
 from cv2.xfeatures2d import matchGMS
-from skimage import data
-from skimage.color import rgb2gray
 from skimage.feature import match_descriptors, ORB, plot_matches
-from skimage.measure import ransac
-from skimage.transform import FundamentalMatrixTransform
 import numpy as np
 import sys
-import kdtree
-import collections
 import math
-from Analyser import *
 
 class Matcher:
     def __init__(self):

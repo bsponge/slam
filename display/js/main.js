@@ -32,10 +32,10 @@ async function start() {
         if (document.pointerLockElement === canvas ||
             document.mozPointerLockElement === canvas) {
             console.log('The pointer lock status is now locked');
-            document.addEventListener("mousemove", ustaw_kamere_mysz, false);
+            document.addEventListener("mousemove", setCameraMouse, false);
         } else {
             console.log('The pointer lock status is now unlocked');
-            document.removeEventListener("mousemove", ustaw_kamere_mysz, false);
+            document.removeEventListener("mousemove", setCameraMouse, false);
         }
     }
     document.addEventListener('wheel', event => {
@@ -50,8 +50,8 @@ async function start() {
     gl.enable(gl.DEPTH_TEST);
 
     let pressedKey
-    let yaw = -90; //obrót względem osi X
-    let pitch = 0; //obrót względem osi Y
+    let yaw = -90
+    let pitch = 0
 
     const vsSource =
         `#version 300 es
@@ -136,13 +136,14 @@ async function start() {
     const projLocation = gl.getUniformLocation(program, "proj")
     const viewLocation = gl.getUniformLocation(program, "view")
 
-    const buffer = gl.createBuffer();
+
     let points = await fetchFile("http://localhost:5000/points")
     let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame")
-    let cameraPoseRotations = await fetchFile("http://localhost:5000/points_in_frame")
-    let cameraPoseLocations = await fetchFile("http://localhost:5000/points_in_frame")
+    let cameraPoses = await fetchFile("http://localhost:5000/camera_poses")
 
-    let framesNum = 1;
+    let framesNum = 1
+
+    const pointsBuffer = gl.createBuffer()
     let pointsNum = loadPointsFromFrame(framesNum, points, pointsNumber)
 
     const positionAttrib = gl.getAttribLocation(program, "position")
@@ -179,10 +180,9 @@ async function start() {
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+        gl.drawArrays(gl.POINTS, 0, pointsNum / 3);
 
-        gl.drawArrays(gl.POINTS, 0, pointsNum/3);
-
-        ustaw_kamere()
+        setCamera()
 
         mat4.lookAt(view, cameraPos, cameraFrontTmp, cameraUp);
         gl.uniformMatrix4fv(viewLocation, false, view);
@@ -210,7 +210,7 @@ async function start() {
         pressedKey = event.keyCode
     }, false);
 
-    function ustaw_kamere_mysz(e) {
+    function setCameraMouse(e) {
         //Wyznaczyć zmianę pozycji myszy względem ostatniej klatki
         let xoffset = e.movementX;
         let yoffset = e.movementY;
@@ -234,7 +234,7 @@ async function start() {
         cameraFront = glm.normalize(front);
     }
 
-    function ustaw_kamere() {
+    function setCamera() {
         let cameraPos_tmp
         switch (pressedKey) {
             case 65: // Left
@@ -299,19 +299,10 @@ async function start() {
         .catch(() => console.log("Failed to download file!"))
     }
 
-    function loadCameraRotations(cameraRotations, framesNum) {
-        // TODO: refactor laodPointsFromFrame t
-    }
-
-    function loadCameraLocations(cameraLocations, framesNum) {
-
-    }
-
     function loadPointsFromFrame(frame, points, pointsNums) {
         points = points.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
         pointsNums = pointsNums.split("\n").map(x => Number(x))
 
-        let vector = []
         let pointsToRead = 0
         let realSize = 0
 
@@ -320,9 +311,6 @@ async function start() {
         }
 
         tmpVec = new Array(pointsToRead)
-        let maxX = Number.MIN_VALUE
-        let maxY = maxX
-        let maxZ = maxX
 
         for (let i = 0; i < pointsToRead; i++) {
             for (let j = 0; j < 3; j++) {
@@ -331,7 +319,7 @@ async function start() {
             }
         }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, pointsBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tmpVec), gl.STATIC_DRAW);
 
         return realSize
