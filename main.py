@@ -34,9 +34,9 @@ def main():
     print('K')
     print(K)
 
-    points_file = open('points', 'w')
-    points_in_frame_file = open('points_in_frame', 'w')
-    camera_poses_file = open('camera_poses', 'w')
+    points_file = open('points.pts', 'w')
+    points_in_frame_file = open('points_in_frame.pts', 'w')
+    camera_poses_file = open('camera_poses.pts', 'w')
 
     matcher = Matcher()
 

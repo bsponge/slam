@@ -137,9 +137,9 @@ async function start() {
     const viewLocation = gl.getUniformLocation(program, "view")
 
 
-    let points = await fetchFile("http://localhost:5000/points")
-    let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame")
-    let cameraPoses = await fetchFile("http://localhost:5000/camera_poses")
+    let points = await fetchFile("http://localhost:5000/points.pts")
+    let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame.pts")
+    let cameraPoses = await fetchFile("http://localhost:5000/camera_poses.pts")
 
     let framesNum = 1
 
