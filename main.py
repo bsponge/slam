@@ -15,223 +15,69 @@ import collections
 import math
 from Analyser import *
 from Matcher import *
+from reconstruct import *
 
 def main():
-    Point = collections.namedtuple('Point', 'x y z')
-
-    cap = cv.VideoCapture('movie1.mp4')
+    cap = cv.VideoCapture('movie.mp4')
     if not cap.isOpened():
         print('Error opening video file!')
         exit(1)
 
-    keypoints_num = 1000
     last_frame = None
-    # focal length
-    #F = 900
-    
 
-    # test, should be obtained from frame info
     width = 1920
     height = 1080
 
-    info_cap = cv.VideoCapture('movie1.mp4')
+    info_cap = cv.VideoCapture('movie.mp4')
     if info_cap.isOpened():
         width = info_cap.get(3)
         height = info_cap.get(4)
         info_cap.release()
 
-    Fx = width / math.tan(1.4486232792/2)
-    Fy = height / math.tan(1.4486232792/2)
-
     intrinsic_matrix = np.array([
-        [500,   0,    width/2 ],
-        [0,   500,    height/2],
+        [500,   0,    width//2 ],
+        [0,   500,    height//2],
         [0,     0,    1       ]
     ])
 
     print('intrinsic_matrix')
     print(intrinsic_matrix)
 
-    # camera location
-    IRt = np.eye(4)[:3]
+    points_file = open('points', 'w')
+    points_in_frame_file = open('points_in_frame', 'w')
+    camera_pose_rotation_file = open('camera_pose_rotation', 'w')
+    camera_pose_location_file = open('camera_pose_location', 'w')
 
-    camera_pose = IRt
-    rotation_matrix = np.identity(3)
+    matcher = Matcher()
 
-    """
-    One way to get a 3D position from a pair of matching points from two images is to take the fundamental matrix,
-    compute the essential matrix, and then to get the rotation and translation between the cameras from the essential matrix.
-    This, of course, assumes that you know the intrinsics of your camera.
-    Also, this would give you up-to-scale reconstruction, with the translation being a unit vector.
-    """
-
-    # camera coordinate system X,Y,Z    <--------
-    #                                           |
-    # image coordinates system U,V              |
-    # |u'|                       |X|            V
-    # |v'| = intrinsic_matrix *  |Y| <-- (camera coordinate system)
-    # |w'|                       |Z|
-    #
-    # u = u'/w'
-    # v = v'/w'
-
-    # relation between camera coordinates system and world coordinates system
-    # is camera_coord_system = rotation_matrix * world_coord_system - rotation_matrix * camera_pose
-
-    # 3D points in world coordinate system should be extrinsic_matrix**(-1) * (u, v, 1)
-
-    file = open('points', 'w')
-    points_in_frame = open('points_in_frame', 'w')
-    camera_pose_file = open('camera_pose', 'w')
-    camera_points_file = open('camera_points', 'w')
-
-    center = None
-
-    position = np.array([0.0, 0.0, 0.0])
-    rotations = []
-    translations = []
-    projections = []
-
-    orb = cv.ORB_create(keypoints_num, fastThreshold=0)
-    mth = cv.BFMatcher(cv.NORM_HAMMING)
-    matcher = Matcher(mth)
-    
+    first = True
+    prev_proj = None
 
     while cap.isOpened(): 
-        # get frame
         ret, frame = cap.read()
         if frame is not None:
             print(frame.shape)
             frame = cv.resize(frame, (frame.shape[1]//2, frame.shape[0]//2))
         kp1, kp2, matches = None, None, None
         
+        if first:
+            prev_proj = np.hstack((intrinsic_matrix, np.zeros((3, 1))))
+            first = False
 
         if last_frame is not None and frame is not None: 
-            points_num = 1
-            kp1, des1 = orb.detectAndCompute(last_frame, None)
-            kp2, des2 = orb.detectAndCompute(frame, None)
-
-
-            matches = matcher.match(kp1, kp2, des1, des2)
-            pts1 = []
-            pts2 = []
-
-            for m in matches:
-                if m.distance < 30:
-                    pts1.append(kp1[m.queryIdx].pt)
-                    pts2.append(kp2[m.trainIdx].pt)
-
-            pts1 = np.asarray(pts1)
-            pts2 = np.asarray(pts2)
-
-            if pts1.shape[0] != 0 and pts2.shape[0] != 0:
-                E, mask = cv.findEssentialMat(pts1, pts2, intrinsic_matrix, cv.LMEDS, 0.999999, 1.0)
-                ptss1 = []
-                ptss2 = []
-                for i in range(len(mask)):
-                    if mask[i][0] == 0:
-                        ptss1.append(pts1[i])
-                        ptss2.append(pts2[i])
-                pts1 = np.asarray(ptss1)
-                pts2 = np.asarray(ptss2)
-                retval, R, t, mask = cv.recoverPose(E, pts1, pts2, intrinsic_matrix)
-
-                position += t.flatten()
-
-                ptss1 = []
-                ptss2 = []
-                for i in range(len(mask)):
-                    if mask[i][0] == 0:
-                        ptss1.append(pts1[i])
-                        ptss2.append(pts2[i])
-               
-                rotations.append(R)
-                translations.append(t)
-                
-
-                """
-                pts1[:,0] /= width
-                pts1[:,1] /= height
-                pts2[:,0] /= width
-                pts2[:,1] /= height
-                """
-
-                p1 = np.hstack((R,position.reshape((3,1))))
-                print(p1)
-                projections.append(intrinsic_matrix.dot(p1))
-
-                """
-                pts1 = cv.undistortPoints(pts1, intrinsic_matrix, None)
-                pts2 = cv.undistortPoints(pts2, intrinsic_matrix, None)
-                print(pts1.shape)
-                """
-
-                pts1 = pts1.reshape(pts1.shape[1], pts1.shape[0])
-                pts2 = pts2.reshape(pts2.shape[1], pts2.shape[0])
-
-                """
-                pts1 = normalize(pts1, width, height)
-                pts2 = normalize(pts2, width, height)
-                """
-
-                scale = 30
-                
-                
-
-                camera_pose_file.write(str(scale*position[0]))
-                camera_pose_file.write(' ')
-                camera_pose_file.write(str(scale*position[1]))
-                camera_pose_file.write(' ')
-                camera_pose_file.write(str(scale*position[2]))
-                camera_pose_file.write('\n')
-
-                camera_points_file.write(str(1))
-                camera_points_file.write('\n')
-
-                IRt = intrinsic_matrix.dot(p1)
-                
-                if len(projections) > 1:
-                    triangulated_points = cv.triangulatePoints(projections[-2], p1, pts1, pts2)
-                    for i in range(triangulated_points.shape[1]):
-                        file.write(str(scale*triangulated_points[0,i]/triangulated_points[3,i]))
-                        file.write(' ')
-                        file.write(str(scale*triangulated_points[1,i]/triangulated_points[3,i]))
-                        file.write(' ')
-                        file.write(str(scale*triangulated_points[2,i]/triangulated_points[3,i]))
-                        file.write('\n')
-                    points_num = triangulated_points.shape[1]
-                    points_in_frame.write(str(points_num))
-                    points_in_frame.write('\n')
+            prev_proj = reconstruct(last_frame, frame, intrinsic_matrix, prev_proj, matcher, points_file, points_in_frame_file, camera_pose_rotation_file, camera_pose_location_file)
             
-            
-        # display frames of the video
-        
-        if ret:
-            """
-            kp = orb.detect(frame, None)
-            if frame is not None and kp2 is not None:
-                img = cv.drawKeypoints(frame, [kp2[m.trainIdx] for m in matches], frame)
-            img = frame
-            if img is not None and matches is not None:
-                for m in matches[100:110]:
-                    cv.line(img, (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), (int(kp2[m.trainIdx].pt[0]), int(kp2[m.trainIdx].pt[1])), (255,0,0), 1)
-                    d = kp1[m.queryIdx].pt[0] - kp2[m.trainIdx].pt[0]
-                    if d != 0.0:
-                        img = cv.putText(img, str((kp1[m.trainIdx].pt[1]-kp2[m.trainIdx].pt[1])/d), (int(kp1[m.queryIdx].pt[0]), int(kp1[m.queryIdx].pt[1])), cv.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 1, cv.LINE_AA)
-            # perspective lines
-            cv.imshow('Frame',img)
-            #sys.stdin.readline()
-            last_frame = frame
-            """
-            if cv.waitKey(25) & 0xFF == ord('q'):
-                break
-        else:
-            break
         last_frame = frame
-    file.close()
+
+    points_file.close()
+    points_in_frame.close()
+    camera_pose_rotation_file.close()
+    camera_pose_location_file.close()
 
     cap.release()
     cv.destroyAllWindows()
+
+
 
 if __name__ == "__main__":
     main()

@@ -18,7 +18,7 @@ class Matcher:
         pass
 
     def match(self, first_frame, second_frame):
-        orb = cv2.ORB_create()
+        orb = cv2.ORB_create(100000)
         mth = cv2.BFMatcher(cv2.NORM_HAMMING)
 
         first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)

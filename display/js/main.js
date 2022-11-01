@@ -62,11 +62,15 @@ async function start() {
 			uniform mat4 proj;
 
 			in vec3 position;
+            in vec3 color;
+
+            out vec3 pointColor;
 
 			void main(void)
 			{
 			   gl_Position = proj * view * model * vec4(position, 1.0);
-               gl_PointSize = 2.0;
+               gl_PointSize = 1.0;
+               pointColor = color;
 			}
 			`;
 
@@ -74,12 +78,12 @@ async function start() {
         `#version 300 es
 		    precision highp float;
 
+            in vec3 pointColor;
 		    out vec4 Color;
-            uniform vec3 color;
 
 		    void main(void)
 			{
-                Color = vec4(color, 1.0);
+                Color = vec4(pointColor, 1.0);
 	   		}
 			`;
 
@@ -121,7 +125,7 @@ async function start() {
     mat4.lookAt(view, [0, 0, 3], [0, 0, -1], [0, 1, 0]);
 
     const proj = mat4.create()
-    mat4.perspective(proj, 60 * Math.PI / 180, gl.canvas.clientWidth / gl.canvas.clientHeight, 01, 100.0);
+    mat4.perspective(proj, 60 * Math.PI / 180, gl.canvas.clientWidth / gl.canvas.clientHeight, 0.1, 990000.0);
 
     let cameraPos = glm.vec3(0, 0, 3);
     let cameraFront = glm.vec3(0, 0, -1);
@@ -131,26 +135,27 @@ async function start() {
     const modelLocation = gl.getUniformLocation(program, "model")
     const projLocation = gl.getUniformLocation(program, "proj")
     const viewLocation = gl.getUniformLocation(program, "view")
-    const colorLocation = gl.getUniformLocation(program, "color")
-
 
     const buffer = gl.createBuffer();
     let points = await fetchFile("http://localhost:5000/points")
     let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame")
+    let cameraPoseRotations = await fetchFile("http://localhost:5000/points_in_frame")
+    let cameraPoseLocations = await fetchFile("http://localhost:5000/points_in_frame")
 
     let framesNum = 1;
     let pointsNum = loadPointsFromFrame(framesNum, points, pointsNumber)
-    //kostka()
 
     const positionAttrib = gl.getAttribLocation(program, "position")
     gl.enableVertexAttribArray(positionAttrib);
-    gl.vertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 6 * 4, 0);
+    gl.vertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 3 * 4, 0);
 
+    const colorAttrib = gl.getAttribLocation(program, "color")
+    gl.enableVertexAttribArray(colorAttrib)
+    gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 3 * 4, 3 * 4 )
 
     gl.uniformMatrix4fv(modelLocation, false, model)
     gl.uniformMatrix4fv(projLocation, false, proj)
     gl.uniformMatrix4fv(viewLocation, false, view)
-    gl.uniform3f(colorLocation, 1.0, 1.0, 1.0)
 
     let startTime = 0;
     let elapsedTime = 0;
@@ -283,60 +288,6 @@ async function start() {
         cameraFrontTmp.z = cameraPos.z + cameraFront.z;
     }
 
-    function kostka() {
-
-        let punkty_ = 36;
-
-        var vertices = [
-            -0.5, -0.5, -0.5, 0.0, 0.0, 0.0,
-            0.5, -0.5, -0.5, 0.0, 0.0, 1.0,
-            0.5, 0.5, -0.5, 0.0, 1.0, 1.0,
-            0.5, 0.5, -0.5, 0.0, 1.0, 1.0,
-            -0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
-            -0.5, -0.5, -0.5, 0.0, 0.0, 0.0,
-
-            -0.5, -0.5, 0.5, 0.0, 0.0, 0.0,
-            0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
-            0.5, 0.5, 0.5, 1.0, 1.0, 1.0,
-            0.5, 0.5, 0.5, 1.0, 1.0, 1.0,
-            -0.5, 0.5, 0.5, 0.0, 1.0, 0.0,
-            -0.5, -0.5, 0.5, 0.0, 0.0, 0.0,
-
-            -0.5, 0.5, 0.5, 1.0, 0.0, 1.0,
-            -0.5, 0.5, -0.5, 1.0, 1.0, 1.0,
-            -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-            -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-            -0.5, -0.5, 0.5, 0.0, 0.0, 0.0,
-            -0.5, 0.5, 0.5, 1.0, 0.0, 1.0,
-
-            0.5, 0.5, 0.5, 1.0, 0.0, 1.0,
-            0.5, 0.5, -0.5, 1.0, 1.0, 1.0,
-            0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-            0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-            0.5, -0.5, 0.5, 0.0, 0.0, 0.0,
-            0.5, 0.5, 0.5, 1.0, 0.0, 1.0,
-
-            -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-            0.5, -0.5, -0.5, 1.0, 1.0, 1.0,
-            0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
-            0.5, -0.5, 0.5, 1.0, 0.0, 1.0,
-            -0.5, -0.5, 0.5, 0.0, 0.0, 0.0,
-            -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
-
-            -0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
-            0.5, 0.5, -0.5, 1.0, 1.0, 1.0,
-            0.5, 0.5, 0.5, 1.0, 0.0, 1.0,
-            0.5, 0.5, 0.5, 1.0, 0.0, 1.0,
-            -0.5, 0.5, 0.5, 0.0, 0.0, 0.0,
-            -0.5, 0.5, -0.5, 0.0, 1.0, 0.0
-        ];
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-        n_draw = punkty_;
-    }
-
     async function fetchFile(url) {
         return await fetch(url)
         .then(res => res.blob())
@@ -346,6 +297,14 @@ async function start() {
             return dec.decode(arr)
         })
         .catch(() => console.log("Failed to download file!"))
+    }
+
+    function loadCameraRotations(cameraRotations, framesNum) {
+        // TODO: refactor laodPointsFromFrame t
+    }
+
+    function loadCameraLocations(cameraLocations, framesNum) {
+
     }
 
     function loadPointsFromFrame(frame, points, pointsNums) {
