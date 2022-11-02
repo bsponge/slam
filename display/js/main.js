@@ -1,7 +1,6 @@
 async function start() {
 
     const canvas = document.getElementById("my_canvas");
-    //Inicialize the GL contex
     const gl = canvas.getContext("webgl2");
     if (gl === null) {
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -109,7 +108,6 @@ async function start() {
 
     window.requestAnimationFrame(draw);
 
-    // Add the event listeners for mousedown, mousemove, and mouseup
     window.addEventListener('mousedown', e => {
         x = e.offsetX;
         y = e.offsetY;
@@ -117,7 +115,6 @@ async function start() {
 
     let cameraFrontTmp = glm.vec3(1, 1, 1);
 
-    // Add the event listeners for keydown, keyup
     window.addEventListener('keyup', function (even) {
         pressedKey = -1
     }, false)
@@ -126,23 +123,19 @@ async function start() {
     }, false);
 
     function setCameraMouse(e) {
-        //Wyznaczyć zmianę pozycji myszy względem ostatniej klatki
         let xoffset = e.movementX;
         let yoffset = e.movementY;
         let sensitivity = 0.1;
         let cameraSpeed = 0.05 * elapsedTime;
         xoffset *= sensitivity;
         yoffset *= sensitivity;
-        //Uaktualnić kąty
         yaw += xoffset * cameraSpeed;
         pitch -= yoffset * cameraSpeed;
-        //Nałożyć ograniczenia co do ruchy kamery
         if (pitch > 89.0)
             pitch = 89.0;
         if (pitch < -89.0)
             pitch = -89.0;
         let front = glm.vec3(1, 1, 1);
-        //Wyznaczenie wektora kierunku na podstawie kątów Eulera
         front.x = Math.cos(glm.radians(yaw)) * Math.cos(glm.radians(pitch));
         front.y = Math.sin(glm.radians(pitch));
         front.z = Math.sin(glm.radians(yaw)) * Math.cos(glm.radians(pitch));
@@ -318,7 +311,6 @@ class CameraPoseRenderer {
             alert(gl.getShaderInfoLog(vsCameraPose));
         }
 
-        //compilation fs
         gl.shaderSource(fsCameraPose, fsCameraPoseSource);
         gl.compileShader(fsCameraPose);
         if (!gl.getShaderParameter(fsCameraPose, gl.COMPILE_STATUS)) {
