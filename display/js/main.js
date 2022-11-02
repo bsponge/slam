@@ -1,5 +1,4 @@
 async function start() {
-
     const canvas = document.getElementById("my_canvas");
     const gl = canvas.getContext("webgl2");
     if (gl === null) {
@@ -66,12 +65,13 @@ async function start() {
     let points = await fetchFile("http://localhost:5000/points.pts")
     let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame.pts")
     let cameraPoses = await fetchFile("http://localhost:5000/camera_poses.pts")
-    
+
+    points = points.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
+    pointsNumber = pointsNumber.split("\n").map(x => Number(x))
+    cameraPoses = cameraPoses.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
 
     let pointsRenderer = new PointsRenderer(gl, points, pointsNumber, model, view, proj)
-    //let cameraPoseRenderer = new CameraPoseRenderer(gl, model, view, proj)
-
-    gl.useProgram(pointsRenderer.program);
+    let cameraPoseRenderer = new CameraPoseRenderer(gl, model, view, proj)
 
     let framesNum = 1
 
@@ -94,7 +94,10 @@ async function start() {
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        gl.drawArrays(gl.POINTS, 0, pointsRenderer.pointsNum / 3);
+        pointsRenderer.draw(framesNum, model, view, proj)
+
+        // to draw the same camera object in different poses always pass camera object 
+        // and change location and rotation matrix for each camera pose drawing 
 
         setCamera()
 
@@ -204,10 +207,20 @@ async function fetchFile(url) {
         .catch(() => console.log("Failed to download file!"))
 }
 
-function loadPointsFromFrame(frame, points, pointsNums) {
-    points = points.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
-    pointsNums = pointsNums.split("\n").map(x => Number(x))
+function loadPointsFromFrame(frame, cameraPoses) {
+    tmpVec = new Array(pointsToRead)
 
+    for (let i = 0; i < frames; i++) {
+        for (let j = 0; j < 3; j++) {
+            tmpVec[i * 3 + j] = points[i * 3 + j]
+            realSize++
+        }
+    }
+
+    return [15*frame, tmpVec]
+}
+
+function loadPointsFromFrame(frame, points, pointsNums) {
     let pointsToRead = 0
     let realSize = 0
 
@@ -273,31 +286,46 @@ class PointsRenderer {
         this.buffer = gl.createBuffer()
         this.pointsNum = 0
         this.loadPointsFromFrame(1, points, pointsNumber) 
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.pointsVec), this.gl.STATIC_DRAW);
 
-        this.positionAttrib = gl.getAttribLocation(this.program, "position")
-        gl.enableVertexAttribArray(this.positionAttrib);
-        gl.vertexAttribPointer(this.positionAttrib, 3, gl.FLOAT, false, 3 * 4, 0);
+        this.positionAttrib = this.gl.getAttribLocation(this.program, "position")
+        this.gl.enableVertexAttribArray(this.positionAttrib);
+        this.gl.vertexAttribPointer(this.positionAttrib, 3, this.gl.FLOAT, false, 3 * 4, 0);
 
         // TODO: refactor
-        this.colorAttrib = gl.getAttribLocation(this.program, "color")
-        gl.enableVertexAttribArray(this.colorAttrib)
-        gl.vertexAttribPointer(this.colorAttrib, 3, gl.FLOAT, false, 3 * 4, 3 * 4)
+        this.colorAttrib = this.gl.getAttribLocation(this.program, "color")
+        this.gl.enableVertexAttribArray(this.colorAttrib)
+        this.gl.vertexAttribPointer(this.colorAttrib, 3, this.gl.FLOAT, false, 3 * 4, 3 * 4)
 
         gl.uniformMatrix4fv(this.modelLocation, false, model)
         gl.uniformMatrix4fv(this.projLocation, false, proj)
         gl.uniformMatrix4fv(this.viewLocation, false, view)
     }
 
+    draw(frame, model, view, proj) {
+        this.gl.useProgram(this.program)
+        this.loadPointsFromFrame(frame, this.points, this.pointsNumber)
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.pointsVec), this.gl.STATIC_DRAW);
+        
+        this.gl.uniformMatrix4fv(this.modelLocation, false, model)
+        this.gl.uniformMatrix4fv(this.projLocation, false, proj)
+        this.gl.uniformMatrix4fv(this.viewLocation, false, view)
+
+        this.gl.drawArrays(this.gl.POINTS, 0, this.pointsNum / 3);
+    }
+
     loadPointsFromFrame(frame) {
         const [pointsNum, tmpVec] = loadPointsFromFrame(frame, this.points, this.pointsNumber)
         this.pointsNum = pointsNum
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(tmpVec), this.gl.STATIC_DRAW);
+        this.pointsVec = tmpVec
     }
 }
 
 class CameraPoseRenderer {
-    constructor(gl, model, view, proj) {
+    constructor(gl, cameraPoses, model, view, proj) {
         this.gl = gl
         this.vsSource = vsCameraPoseSource
         this.fsSource = fsCameraPoseSource
@@ -332,16 +360,30 @@ class CameraPoseRenderer {
 
         gl.useProgram(this.program)
 
-        const positionCameraPoseAttrib = gl.getAttribLocation(this.program, "position")
-        gl.enableVertexAttribArray(positionCameraPoseAttrib);
-        gl.vertexAttribPointer(positionCameraPoseAttrib, 3, gl.FLOAT, false, 3 * 4, 0);
+        const positionAttrib = gl.getAttribLocation(this.program, "position")
+        gl.enableVertexAttribArray(positionAttrib);
+        gl.vertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 3 * 4, 0);
 
         this.modelLocation = gl.getUniformLocation(this.program, "model")
-        this.projLocation = gl.getUniformLocation(this.progam, "proj")
-        this.viewLocation = gl.getUniformLocation(this.progam, "view")
+        this.projLocation = gl.getUniformLocation(this.program, "proj")
+        this.viewLocation = gl.getUniformLocation(this.program, "view")
+    }
+
+    loadCameraPosesFromFrame(frame, model, view, proj) {
+        
+    }
+
+    draw(frame) {
+        this.gl.useProgram(this.program)
+        this.loadPointsFromFrame(frame, this.points, this.pointsNumber)
+
+        this.gl.uniformMatrix4fv(this.modelLocation, false, this.model)
+        this.gl.uniformMatrix4fv(this.projLocation, false, this.proj)
+        this.gl.uniformMatrix4fv(this.viewLocation, false, this.view)
+
+        this.gl.drawArrays(this.gl.POINTS, 0, this.pointsNum / 3);
     }
 }
-
 
 const vsCameraPoseSource =
     `#version 300 es
@@ -390,7 +432,7 @@ const vsPointsSource =
 			void main(void)
 			{
 			   gl_Position = proj * view * model * vec4(position, 1.0);
-               gl_PointSize = 1.0;
+               gl_PointSize = 2.0;
                pointColor = color;
 			}
 			`;
