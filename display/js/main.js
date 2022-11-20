@@ -1,7 +1,5 @@
 async function start() {
-
     const canvas = document.getElementById("my_canvas");
-    //Inicialize the GL contex
     const gl = canvas.getContext("webgl2");
     if (gl === null) {
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -13,10 +11,6 @@ async function start() {
     console.log("Vendor: " + gl.getParameter(gl.VENDOR));
 
     let cameraSpeed = 0.05;
-
-    const vs = gl.createShader(gl.VERTEX_SHADER);
-    const fs = gl.createShader(gl.FRAGMENT_SHADER);
-    const program = gl.createProgram();
 
     canvas.requestPointerLock = canvas.requestPointerLock ||
         canvas.mozRequestPointerLock;
@@ -32,10 +26,10 @@ async function start() {
         if (document.pointerLockElement === canvas ||
             document.mozPointerLockElement === canvas) {
             console.log('The pointer lock status is now locked');
-            document.addEventListener("mousemove", ustaw_kamere_mysz, false);
+            document.addEventListener("mousemove", setCameraMouse, false);
         } else {
             console.log('The pointer lock status is now unlocked');
-            document.removeEventListener("mousemove", ustaw_kamere_mysz, false);
+            document.removeEventListener("mousemove", setCameraMouse, false);
         }
     }
     document.addEventListener('wheel', event => {
@@ -50,72 +44,9 @@ async function start() {
     gl.enable(gl.DEPTH_TEST);
 
     let pressedKey
-    let yaw = -90; //obrót względem osi X
-    let pitch = 0; //obrót względem osi Y
+    let yaw = -90
+    let pitch = 0
 
-    const vsSource =
-        `#version 300 es
-			precision highp float;
-
-			uniform mat4 model;
-			uniform mat4 view;
-			uniform mat4 proj;
-
-			in vec3 position;
-            in vec3 color;
-
-            out vec3 pointColor;
-
-			void main(void)
-			{
-			   gl_Position = proj * view * model * vec4(position, 1.0);
-               gl_PointSize = 1.0;
-               pointColor = color;
-			}
-			`;
-
-    const fsSource =
-        `#version 300 es
-		    precision highp float;
-
-            in vec3 pointColor;
-		    out vec4 Color;
-
-		    void main(void)
-			{
-                Color = vec4(pointColor, 1.0);
-	   		}
-			`;
-
-
-    //compilation vs
-    gl.shaderSource(vs, vsSource);
-    gl.compileShader(vs);
-    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(vs));
-    }
-
-    //compilation fs
-    gl.shaderSource(fs, fsSource);
-    gl.compileShader(fs);
-    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(fs));
-    }
-
-    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
-        alert(gl.getShaderInfoLog(fs));
-    }
-
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        console.log("ERROR")
-        alert(gl.getProgramInfoLog(program));
-    }
-
-    gl.useProgram(program);
 
     const model = mat4.create();
     const rotation = 0;
@@ -130,40 +61,24 @@ async function start() {
     let cameraPos = glm.vec3(0, 0, 3);
     let cameraFront = glm.vec3(0, 0, -1);
     let cameraUp = glm.vec3(0, 1, 0);
-    let obrot = 0.0;
 
-    const modelLocation = gl.getUniformLocation(program, "model")
-    const projLocation = gl.getUniformLocation(program, "proj")
-    const viewLocation = gl.getUniformLocation(program, "view")
+    let points = await fetchFile("http://localhost:5000/points.pts")
+    let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame.pts")
+    let cameraPoses = await fetchFile("http://localhost:5000/camera_poses.pts")
 
-    const buffer = gl.createBuffer();
-    let points = await fetchFile("http://localhost:5000/points")
-    let pointsNumber = await fetchFile("http://localhost:5000/points_in_frame")
-    let cameraPoseRotations = await fetchFile("http://localhost:5000/points_in_frame")
-    let cameraPoseLocations = await fetchFile("http://localhost:5000/points_in_frame")
+    points = points.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
+    pointsNumber = pointsNumber.split("\n").map(x => Number(x))
+    cameraPoses = cameraPoses.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
 
-    let framesNum = 1;
-    let pointsNum = loadPointsFromFrame(framesNum, points, pointsNumber)
+    let pointsRenderer = new PointsRenderer(gl, points, pointsNumber, model, view, proj)
+    let cameraPoseRenderer = new CameraPoseRenderer(gl, model, view, proj)
 
-    const positionAttrib = gl.getAttribLocation(program, "position")
-    gl.enableVertexAttribArray(positionAttrib);
-    gl.vertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 3 * 4, 0);
-
-    const colorAttrib = gl.getAttribLocation(program, "color")
-    gl.enableVertexAttribArray(colorAttrib)
-    gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 3 * 4, 3 * 4 )
-
-    gl.uniformMatrix4fv(modelLocation, false, model)
-    gl.uniformMatrix4fv(projLocation, false, proj)
-    gl.uniformMatrix4fv(viewLocation, false, view)
+    let framesNum = 1
 
     let startTime = 0;
     let elapsedTime = 0;
     let licznik = 0;
-    let FPS = 90;
     const fpsElem = document.getElementById("#fps");
-
-    
 
     function draw() {
         elapsedTime = performance.now() - startTime;
@@ -179,30 +94,30 @@ async function start() {
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
+        pointsRenderer.draw(framesNum, model, view, proj)
 
-        gl.drawArrays(gl.POINTS, 0, pointsNum/3);
+        // to draw the same camera object in different poses always pass camera object 
+        // and change location and rotation matrix for each camera pose drawing 
 
-        ustaw_kamere()
+        setCamera()
 
         mat4.lookAt(view, cameraPos, cameraFrontTmp, cameraUp);
-        gl.uniformMatrix4fv(viewLocation, false, view);
+        gl.uniformMatrix4fv(pointsRenderer.viewLocation, false, view);
+        gl.uniformMatrix4fv(pointsRenderer.modelLocation, false, model)
+        gl.uniformMatrix4fv(pointsRenderer.projLocation, false, proj)
 
         setTimeout(() => { requestAnimationFrame(draw); }, 1000 / 120);
     }
 
-
     window.requestAnimationFrame(draw);
 
-    // Add the event listeners for mousedown, mousemove, and mouseup
     window.addEventListener('mousedown', e => {
         x = e.offsetX;
         y = e.offsetY;
     });
 
-
     let cameraFrontTmp = glm.vec3(1, 1, 1);
 
-    // Add the event listeners for keydown, keyup
     window.addEventListener('keyup', function (even) {
         pressedKey = -1
     }, false)
@@ -210,31 +125,27 @@ async function start() {
         pressedKey = event.keyCode
     }, false);
 
-    function ustaw_kamere_mysz(e) {
-        //Wyznaczyć zmianę pozycji myszy względem ostatniej klatki
+    function setCameraMouse(e) {
         let xoffset = e.movementX;
         let yoffset = e.movementY;
         let sensitivity = 0.1;
         let cameraSpeed = 0.05 * elapsedTime;
         xoffset *= sensitivity;
         yoffset *= sensitivity;
-        //Uaktualnić kąty
         yaw += xoffset * cameraSpeed;
         pitch -= yoffset * cameraSpeed;
-        //Nałożyć ograniczenia co do ruchy kamery
         if (pitch > 89.0)
             pitch = 89.0;
         if (pitch < -89.0)
             pitch = -89.0;
         let front = glm.vec3(1, 1, 1);
-        //Wyznaczenie wektora kierunku na podstawie kątów Eulera
         front.x = Math.cos(glm.radians(yaw)) * Math.cos(glm.radians(pitch));
         front.y = Math.sin(glm.radians(pitch));
         front.z = Math.sin(glm.radians(yaw)) * Math.cos(glm.radians(pitch));
         cameraFront = glm.normalize(front);
     }
 
-    function ustaw_kamere() {
+    function setCamera() {
         let cameraPos_tmp
         switch (pressedKey) {
             case 65: // Left
@@ -267,18 +178,14 @@ async function start() {
                 break;
             case 82: // R
                 framesNum++
-                let cp = pointsNum
-                pointsNum = loadPointsFromFrame(framesNum, points, pointsNumber)
-                if (pointsNum == cp) {
-                    framesNum--
-                }
-                console.log("points_num: ", pointsNum)
+                pointsRenderer.loadPointsFromFrame(framesNum)
+                console.log("points_num: ", this.pointsNum)
                 break;
             case 69: // E 
                 if (framesNum > 1) {
                     framesNum--
-                    pointsNum = loadPointsFromFrame(framesNum, points, pointsNumber)
-                    console.log("points_num: ", pointsNum)
+                    pointsRenderer.loadPointsFromFrame(framesNum)
+                    console.log("points_num: ", pointsRenderer.pointsNum)
                 }
                 break;
         }
@@ -287,9 +194,10 @@ async function start() {
         cameraFrontTmp.y = cameraPos.y + cameraFront.y;
         cameraFrontTmp.z = cameraPos.z + cameraFront.z;
     }
+}
 
-    async function fetchFile(url) {
-        return await fetch(url)
+async function fetchFile(url) {
+    return await fetch(url)
         .then(res => res.blob())
         .then(blob => blob.arrayBuffer())
         .then(arr => {
@@ -297,43 +205,247 @@ async function start() {
             return dec.decode(arr)
         })
         .catch(() => console.log("Failed to download file!"))
+}
+
+function loadPointsFromFrame(frame, cameraPoses) {
+    tmpVec = new Array(pointsToRead)
+
+    for (let i = 0; i < frames; i++) {
+        for (let j = 0; j < 3; j++) {
+            tmpVec[i * 3 + j] = points[i * 3 + j]
+            realSize++
+        }
     }
 
-    function loadCameraRotations(cameraRotations, framesNum) {
-        // TODO: refactor laodPointsFromFrame t
+    return [15*frame, tmpVec]
+}
+
+function loadPointsFromFrame(frame, points, pointsNums) {
+    let pointsToRead = 0
+    let realSize = 0
+
+    for (let i = 0; i < frame && i < pointsNums.length; i++) {
+        pointsToRead += pointsNums[i]
     }
 
-    function loadCameraLocations(cameraLocations, framesNum) {
+    tmpVec = new Array(pointsToRead)
 
+    for (let i = 0; i < pointsToRead; i++) {
+        for (let j = 0; j < 3; j++) {
+            tmpVec[i * 3 + j] = points[i * 3 + j]
+            realSize++
+        }
     }
 
-    function loadPointsFromFrame(frame, points, pointsNums) {
-        points = points.split("\n").flatMap(line => line.split(" ")).map(x => Number(x))
-        pointsNums = pointsNums.split("\n").map(x => Number(x))
+    return [realSize, tmpVec]
+}
 
-        let vector = []
-        let pointsToRead = 0
-        let realSize = 0
+class PointsRenderer {
+    constructor(gl, points, pointsNumber, model, view, proj) {
+        this.gl = gl
+        this.points = points
+        this.pointsNumber = pointsNumber
 
-        for (let i = 0; i < frame && i < pointsNums.length; i++) {
-            pointsToRead += pointsNums[i]
+        this.vsSource = vsPointsSource
+        this.fsSource = fsPointsSource
+        const vsPoints = gl.createShader(gl.VERTEX_SHADER);
+        const fsPoints = gl.createShader(gl.FRAGMENT_SHADER);
+        this.program = gl.createProgram();
+
+        gl.shaderSource(vsPoints, this.vsSource);
+        gl.compileShader(vsPoints);
+        if (!gl.getShaderParameter(vsPoints, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(vsPoints));
         }
 
-        tmpVec = new Array(pointsToRead)
-        let maxX = Number.MIN_VALUE
-        let maxY = maxX
-        let maxZ = maxX
-
-        for (let i = 0; i < pointsToRead; i++) {
-            for (let j = 0; j < 3; j++) {
-                tmpVec[i*3+j] = points[i*3+j]
-                realSize++
-            }
+        gl.shaderSource(fsPoints, this.fsSource);
+        gl.compileShader(fsPoints);
+        if (!gl.getShaderParameter(fsPoints, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(fsPoints));
         }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tmpVec), gl.STATIC_DRAW);
+        if (!gl.getShaderParameter(fsPoints, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(fsPoints));
+        }
 
-        return realSize
+        gl.attachShader(this.program, vsPoints);
+        gl.attachShader(this.program, fsPoints);
+        gl.linkProgram(this.program);
+
+        if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+            console.log("ERROR")
+            alert(gl.getProgramInfoLog(this.program));
+        }
+
+        gl.useProgram(this.program)
+
+        this.modelLocation = gl.getUniformLocation(this.program, "model")
+        this.projLocation = gl.getUniformLocation(this.program, "proj")
+        this.viewLocation = gl.getUniformLocation(this.program, "view")
+
+        this.buffer = gl.createBuffer()
+        this.pointsNum = 0
+        this.loadPointsFromFrame(1, points, pointsNumber) 
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.pointsVec), this.gl.STATIC_DRAW);
+
+        this.positionAttrib = this.gl.getAttribLocation(this.program, "position")
+        this.gl.enableVertexAttribArray(this.positionAttrib);
+        this.gl.vertexAttribPointer(this.positionAttrib, 3, this.gl.FLOAT, false, 3 * 4, 0);
+
+        // TODO: refactor
+        this.colorAttrib = this.gl.getAttribLocation(this.program, "color")
+        this.gl.enableVertexAttribArray(this.colorAttrib)
+        this.gl.vertexAttribPointer(this.colorAttrib, 3, this.gl.FLOAT, false, 3 * 4, 3 * 4)
+
+        gl.uniformMatrix4fv(this.modelLocation, false, model)
+        gl.uniformMatrix4fv(this.projLocation, false, proj)
+        gl.uniformMatrix4fv(this.viewLocation, false, view)
+    }
+
+    draw(frame, model, view, proj) {
+        this.gl.useProgram(this.program)
+        this.loadPointsFromFrame(frame, this.points, this.pointsNumber)
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.pointsVec), this.gl.STATIC_DRAW);
+        
+        this.gl.uniformMatrix4fv(this.modelLocation, false, model)
+        this.gl.uniformMatrix4fv(this.projLocation, false, proj)
+        this.gl.uniformMatrix4fv(this.viewLocation, false, view)
+
+        this.gl.drawArrays(this.gl.POINTS, 0, this.pointsNum / 3);
+    }
+
+    loadPointsFromFrame(frame) {
+        const [pointsNum, tmpVec] = loadPointsFromFrame(frame, this.points, this.pointsNumber)
+        this.pointsNum = pointsNum
+        this.pointsVec = tmpVec
     }
 }
+
+class CameraPoseRenderer {
+    constructor(gl, cameraPoses, model, view, proj) {
+        this.gl = gl
+        this.vsSource = vsCameraPoseSource
+        this.fsSource = fsCameraPoseSource
+        const vsCameraPose = gl.createShader(gl.VERTEX_SHADER);
+        const fsCameraPose = gl.createShader(gl.FRAGMENT_SHADER);
+        this.program = gl.createProgram();
+
+        gl.shaderSource(vsCameraPose, vsCameraPoseSource);
+        gl.compileShader(vsCameraPose);
+        if (!gl.getShaderParameter(vsCameraPose, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(vsCameraPose));
+        }
+
+        gl.shaderSource(fsCameraPose, fsCameraPoseSource);
+        gl.compileShader(fsCameraPose);
+        if (!gl.getShaderParameter(fsCameraPose, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(fsCameraPose));
+        }
+
+        if (!gl.getShaderParameter(fsCameraPose, gl.COMPILE_STATUS)) {
+            alert(gl.getShaderInfoLog(fsCameraPose));
+        }
+
+        gl.attachShader(this.program, vsCameraPose);
+        gl.attachShader(this.program, fsCameraPose);
+        gl.linkProgram(this.program);
+
+        if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+            console.log("ERROR")
+            alert(gl.getProgramInfoLog(this.program));
+        }
+
+        gl.useProgram(this.program)
+
+        const positionAttrib = gl.getAttribLocation(this.program, "position")
+        gl.enableVertexAttribArray(positionAttrib);
+        gl.vertexAttribPointer(positionAttrib, 3, gl.FLOAT, false, 3 * 4, 0);
+
+        this.modelLocation = gl.getUniformLocation(this.program, "model")
+        this.projLocation = gl.getUniformLocation(this.program, "proj")
+        this.viewLocation = gl.getUniformLocation(this.program, "view")
+    }
+
+    loadCameraPosesFromFrame(frame, model, view, proj) {
+        
+    }
+
+    draw(frame) {
+        this.gl.useProgram(this.program)
+        this.loadPointsFromFrame(frame, this.points, this.pointsNumber)
+
+        this.gl.uniformMatrix4fv(this.modelLocation, false, this.model)
+        this.gl.uniformMatrix4fv(this.projLocation, false, this.proj)
+        this.gl.uniformMatrix4fv(this.viewLocation, false, this.view)
+
+        this.gl.drawArrays(this.gl.POINTS, 0, this.pointsNum / 3);
+    }
+}
+
+const vsCameraPoseSource =
+    `#version 300 es
+    precision highp float;
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 proj;
+
+    in vec3 position;
+    in vec4 firstRow;
+    in vec4 secondRow;
+    in vec4 thirdRow;
+
+    void main() {
+        vec4 vec = vec4(0.0, 0.0, 0.0, 1.0);
+        mat4 rot = mat4(firstRow, secondRow, thirdRow, vec);
+        gl_Position = rot * proj * view * model * vec4(position, 1.0);
+    }
+    `
+
+const fsCameraPoseSource =
+    `#version 300 es
+    precision highp float;
+
+    out vec4 Color;
+
+    void main() {
+        Color = vec4(0.0, 0.1, 0.0, 1.0);
+    }
+    `
+
+const vsPointsSource =
+    `#version 300 es
+			precision highp float;
+
+			uniform mat4 model;
+			uniform mat4 view;
+			uniform mat4 proj;
+
+			in vec3 position;
+            in vec3 color;
+
+            out vec3 pointColor;
+
+			void main(void)
+			{
+			   gl_Position = proj * view * model * vec4(position, 1.0);
+               gl_PointSize = 2.0;
+               pointColor = color;
+			}
+			`;
+
+const fsPointsSource =
+    `#version 300 es
+		    precision highp float;
+
+            in vec3 pointColor;
+		    out vec4 Color;
+
+		    void main(void)
+			{
+                Color = vec4(pointColor, 1.0);
+	   		}
+			`;
